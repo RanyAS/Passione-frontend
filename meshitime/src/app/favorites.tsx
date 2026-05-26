@@ -12,7 +12,6 @@ const favoriteRestaurants = [
     isHotDeal: true,
     bgColor: "#FFDDB0",
   },
-
-
+  
 
 ]
