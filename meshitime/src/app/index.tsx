@@ -60,7 +60,7 @@ export default function HomeScreen() {
       </SafeAreaView>
     </ThemedView>
   );
-  // return <Redirect href="/Register/RegisterScreen" />; // Rany: 新規登録画面のUIを表示するために、HomeScreenコンポーネントをRegisterScreenコンポーネントに置き換えました。
+  //return <Redirect href="/Register/RegisterScreen" />; // Rany: 新規登録画面のUIを表示するために、HomeScreenコンポーネントをRegisterScreenコンポーネントに置き換えました。
 }
 
 const styles = StyleSheet.create({
