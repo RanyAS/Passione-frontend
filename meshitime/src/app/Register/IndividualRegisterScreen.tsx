@@ -8,6 +8,8 @@ import {
   Image,
 } from "react-native";
 import { styles } from "../../styles/IndividualRegisterStyle";
+import * as ImagePicker from "expo-image-picker";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function IndividualRegister() {
   const [email, setEmail] = useState("");
@@ -15,6 +17,27 @@ export default function IndividualRegister() {
   const [username, setUsername] = useState("");
   const [address, setAddress] = useState("");
   const [imagePath, setImagePath] = useState("");
+
+
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      alert("Permission to access media library is required!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImagePath(result.assets[0].uri);
+    }
+  }
+
   const handleRegister = () => {
     console.log({
       email,
@@ -56,12 +79,13 @@ export default function IndividualRegister() {
         onChangeText={setAddress}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Image Path (optional)"
-        value={imagePath}
-        onChangeText={setImagePath}
-      />
+      <TouchableOpacity
+        style={styles.imagePicker}
+        onPress={pickImage}
+      >
+        <Ionicons name="camera" size={32} color="gray" />
+        <Text>Select Image</Text>
+      </TouchableOpacity>
       {imagePath !== "" && (
         <Image
           source={{ uri: imagePath }}
