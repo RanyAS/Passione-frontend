@@ -1,0 +1,126 @@
+import { StyleSheet } from "react-native";
+
+export const favoriteStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F3F4F8",
+  },
+  content: {
+    padding: 18,
+    paddingBottom: 40,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    marginBottom: 24,
+  },
+  backIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#EEF0F5",
+    textAlign: "center",
+    lineHeight: 42,
+    fontSize: 24,
+    color: "#374151",
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#111827",
+  },
+  subtitle: {
+    marginTop: 6,
+    fontSize: 14,
+    color: "#6B7280",
+  },
+  cardGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    rowGap: 14,
+  },
+  card: {
+    width: "48%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    overflow: "hidden",
+    marginBottom: 14,
+    elevation: 3,
+  },
+  imageArea: {
+    height: 145,
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+  },
+  hotBadge: {
+    position: "absolute",
+    top: 10,
+    right: 8,
+    backgroundColor: "#FF3B35",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+  },
+  hotBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  foodIcon: {
+    fontSize: 54,
+  },
+  discountBadge: {
+    position: "absolute",
+    left: 8,
+    bottom: 10,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  discountText: {
+    color: "#FF3B35",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  cardBody: {
+    padding: 12,
+    position: "relative",
+    minHeight: 86,
+  },
+  restaurantName: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#111827",
+  },
+  rating: {
+    marginTop: 8,
+    fontSize: 13,
+    color: "#F59E0B",
+  },
+  price: {
+    marginTop: 4,
+    fontSize: 13,
+    fontWeight: "bold",
+    color: "#111827",
+  },
+  heartButton: {
+    position: "absolute",
+    right: 10,
+    bottom: 10,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#FFE7E7",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  heartText: {
+    color: "#FF3B35",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+});
