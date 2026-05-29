@@ -40,4 +40,15 @@ import { StyleSheet } from "react-native";
   buttonText: {
     fontSize: 18,
   },
+
+  imagePicker: {
+    width: "100%",
+    height: 120,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
 });
