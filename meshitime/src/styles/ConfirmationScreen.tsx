@@ -1,0 +1,206 @@
+import { StyleSheet } from "react-native";
+import { MeshitimeColors } from "@/theme/meshitime-theme";
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: MeshitimeColors.background,
+  },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 16,
+  },
+  content: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingVertical: 16,
+  },
+  successBubble: {
+    width: 94,
+    height: 94,
+    borderRadius: 47,
+    backgroundColor: MeshitimeColors.success,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  title: {
+    marginTop: 14,
+    fontSize: 29,
+    fontWeight: '800',
+    color: MeshitimeColors.text,
+  },
+  message: {
+    marginTop: 6,
+    color: MeshitimeColors.textMuted,
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  errormessage: {
+    //for now hide error message, as it's not implemented in the backend yet
+    display: 'none',
+    marginTop: 6,
+    color: MeshitimeColors.error,
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  card: {
+    width: '100%',
+    marginTop: 16,
+    backgroundColor: '#FFFFFFFF',
+    borderRadius: 28,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 24,
+    elevation: 6,
+  },
+  restaurant: {
+    fontSize: 20,
+    color: MeshitimeColors.text,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  restaurantSub: {
+    textAlign: 'center',
+    marginTop: 6,
+    marginBottom: 18,
+    color: MeshitimeColors.textMuted,
+    fontSize: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  rowIconBubble: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  rowText: {
+    flex: 1,
+  },
+  rowLabel: {
+    color: '#6B7280',
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  rowValue: {
+    color: MeshitimeColors.text,
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  lastRow: {
+    marginBottom: 0,
+  },
+  discountWrap: {
+    marginTop: 12,
+    borderRadius: 24,
+    backgroundColor: '#FBE7EA',
+    padding: 18,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  discountTitle: {
+    color: MeshitimeColors.textMuted,
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  discountSubtitle: {
+    color: MeshitimeColors.primary,
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  discountPriceWrap: {
+    alignItems: 'flex-end',
+  },
+  discountOriginal: {
+    color: MeshitimeColors.textMuted,
+    fontSize: 12,
+    textDecorationLine: 'line-through',
+  },
+  discountFinal: {
+    color: MeshitimeColors.text,
+    fontSize: 24,
+    fontWeight: '900',
+    marginTop: 4,
+  },
+  discountCodeLabel: {
+    color: MeshitimeColors.textMuted,
+    fontWeight: '700',
+  },
+  qrBox: {
+    marginTop: 14,
+    width: 150,
+    height: 150,
+    borderRadius: 14,
+    borderWidth: 3,
+    borderColor: '#E5E7EB',
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qrLabel: {
+    color: MeshitimeColors.text,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  discountNum: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  qrId: {
+    textAlign: 'center',
+    marginTop: 8,
+    color: '#9CA3AF',
+    fontSize: 11,
+  },
+  mainButton: {
+    width: '100%',
+    marginTop: 14,
+    minHeight: 52,
+    borderRadius: 14,
+    backgroundColor: MeshitimeColors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    paddingHorizontal: 18,
+  },
+  mainButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 15,
+  },
+  mainButtonIcon: {
+    marginRight: 8,
+  },
+  linkButton: {
+    marginTop: 10,
+    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  linkIcon: {
+    marginRight: 8,
+  },
+  linkButtonText: {
+    color: MeshitimeColors.textMuted,
+    textDecorationLine: 'underline',
+  },
+});
