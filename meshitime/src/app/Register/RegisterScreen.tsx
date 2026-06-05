@@ -4,10 +4,11 @@ import {
   Text,
   TouchableOpacity,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { styles } from "../../styles/RegisterStyle";
-import { router } from "expo-router";
 
 export default function RegisterScreen() {
+  const router = useRouter();
 
   const handlePersonalRegister = () => {
     router.push("/Register/IndividualRegisterScreen");
