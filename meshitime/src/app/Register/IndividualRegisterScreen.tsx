@@ -17,6 +17,7 @@ export default function IndividualRegister() {
   const [username, setUsername] = useState("");
   const [address, setAddress] = useState("");
   const [imagePath, setImagePath] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
 
   const pickImage = async () => {
@@ -47,30 +48,61 @@ export default function IndividualRegister() {
       imagePath,
     });
   };
-
+  
+  //toggle password visibility
+  // Toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
+  
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Individual Registration</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      {imagePath !== "" && (
+        <Image
+          source={{ uri: imagePath }}
+          style={styles.previewImage}
+        />
+      )}
+      <View style={styles.inputContainer}>
+        <Ionicons name="mail-outline" size={20} color="gray" style={styles.inputIcon} />
+        <TextInput
+          style={styles.inputField}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+      </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-      />
+      <View style={styles.inputContainer}>
+        <Ionicons name="lock-closed-outline" size={20} color="gray" style={styles.inputIcon} />
+        <TextInput
+          style={styles.inputField}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+        />
+        <TouchableOpacity onPress={togglePasswordVisibility} style={styles.rightIconButton} accessibilityLabel="Toggle password visibility">
+          <Ionicons name={showPassword ? "eye-off" : "eye"} size={20} color="gray" />
+        </TouchableOpacity>
+      </View>
+    {/* //password 8 characters minimum, at least one letter and one number */}
+      <Text style={{ color: "gray", marginBottom: 16 }}>
+        Password must be at least 8 characters, and include at least one letter and one number.
+      </Text>
+
+      <View style={styles.inputContainer}>
+        <Ionicons name="person-outline" size={20} color="gray" style={styles.inputIcon} />
+        <TextInput
+          style={styles.inputField}
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+        />
+      </View>
 
       <TextInput
         style={styles.input}
@@ -86,13 +118,6 @@ export default function IndividualRegister() {
         <Ionicons name="camera" size={32} color="gray" />
         <Text>Select Image</Text>
       </TouchableOpacity>
-      {imagePath !== "" && (
-        <Image
-          source={{ uri: imagePath }}
-          style={styles.previewImage}
-        />
-      )}
-
       <TouchableOpacity
         style={styles.button}
         onPress={handleRegister}
