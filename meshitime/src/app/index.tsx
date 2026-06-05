@@ -8,6 +8,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { WebBadge } from '@/components/web-badge';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+// import { Redirect } from 'expo-router'
 
 function getDevMenuHint() {
   if (Platform.OS === 'web') {
@@ -59,6 +60,7 @@ export default function HomeScreen() {
       </SafeAreaView>
     </ThemedView>
   );
+  //return <Redirect href="/Register/RegisterScreen" />; // Rany: 新規登録画面のUIを表示するために、HomeScreenコンポーネントをRegisterScreenコンポーネントに置き換えました。
 }
 
 const styles = StyleSheet.create({
