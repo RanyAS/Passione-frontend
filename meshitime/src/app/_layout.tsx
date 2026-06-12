@@ -1,10 +1,13 @@
 
 import { router } from 'expo-router';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { Stack } from 'expo-router';
+import React from 'react';
 import React, { useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { Stack } from 'expo-router';
 
+export default function RootLayout() {
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import AppTabs from '@/components/app-tabs';
 import OnboardingScreen from '@/app/onboarding';
