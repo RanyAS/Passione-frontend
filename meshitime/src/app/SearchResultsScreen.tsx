@@ -272,7 +272,7 @@ const SearchResultsScreen: React.FC = () => {
             item={item}
             onPress={() =>
               router.push({
-                pathname: "/restaurant-detail",
+                pathname: "./restaurant-detail",
                 params: { id: item.id },
               })
             }
