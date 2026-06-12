@@ -116,7 +116,7 @@ export default function ShopRegister() {
           value={businessHours}
           onChangeText={setBusinessHours}
         />
-      </View>,
+      </View>
 
       <View style={styles.inputContainer}>
         <Ionicons name="image-outline" size={20} color="gray" style={styles.inputIcon} />
