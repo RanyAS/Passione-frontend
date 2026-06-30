@@ -21,6 +21,7 @@ import { triggerFeedback } from '../../utils/feedback';
 import { NativeMap } from '../components/native-map.native';
 
 import { formatYen } from '../../utils/screen-utils';
+import { router } from 'expo-router';
 
 
 interface HomeMapScreenProps {
@@ -175,6 +176,7 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
                     <Pressable
                       style={styles.primaryCta}
                       onPress={() => {
+                        router.replace('/ConfirmationScreen');
                         const id = selectedRestaurant.id;
                         setSelectedRestaurant(null);
                         onOpenRestaurant(id);
@@ -193,7 +195,6 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
             </View>
         </View>
     </Modal> 
-    /*back to my location button*/
     <Pressable
       style={styles.backToMyLocationButton}
       onPress={async () => {

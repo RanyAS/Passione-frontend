@@ -1,6 +1,7 @@
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import FavoriteCard from "../components/ui/favorite-card";
 import { favoriteStyles as styles } from "../styles/favorites.styles";
+import { router } from "expo-router";
 
 
 const favoriteRestaurants = [
@@ -78,7 +79,9 @@ export default function FavoritesScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <Text style={styles.backIcon}>←</Text>
+        <TouchableOpacity onPress={() => router.push('/HomeMapScreen')}>
+          <Text style={styles.backIcon}>←</Text>
+        </TouchableOpacity>
         <View>
           <Text style={styles.title}>お気に入り</Text>
           <Text style={styles.subtitle}>

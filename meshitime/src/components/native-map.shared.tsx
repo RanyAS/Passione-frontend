@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import { StyleSheet, View, ViewStyle, Text } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type { Restaurant } from '../../types/meshitime';
+//import from .env
+const FALLBACK_GOOGLE_MAPS_API_KEY= process.env.OPENROUTER_API_KEY ?? '';
 
-//GOOGLE API KEY
-const FALLBACK_GOOGLE_MAPS_API_KEY = 'AIzaSyCl93wern0r2xXl0yc2PqJcrMKwNakpaVA';
 
 type Region = {
   latitude: number;

@@ -22,7 +22,7 @@ interface confirmationScreenProps {
 export default function Page() {
   const router = useRouter();
 
-  return <ConfirmationScreen onGoHome={() => router.push('/')} />;
+  return <ConfirmationScreen onGoHome={() => router.push('/HomeMapScreen')} />;
 }
 export function ConfirmationScreen({ onGoHome }: confirmationScreenProps) {
   //const toast = usetoast();
