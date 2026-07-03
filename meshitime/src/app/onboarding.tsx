@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import { router } from 'expo-router';
+import { useRef, useState } from 'react';
 import {
   FlatList,
   SafeAreaView,
@@ -86,7 +87,8 @@ interface OnboardingScreenProps {
   onFinish: () => void; // called when user taps "始める" on last slide
 }
 
-const OnboardingScreen = ({ onFinish }: OnboardingScreenProps) => {
+const OnboardingScreen = () => {
+  const onFinish = () => router.replace('/login');
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef<FlatList<SlideData>>(null);
   const { width: screenWidth } = useWindowDimensions();
