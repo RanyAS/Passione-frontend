@@ -107,6 +107,10 @@ export default function ProfileScreen() {
   <Text style={styles.versionText}>MESHITIME v1.0.0</Text>
 </View>
 
+<View>
+  
+</View>
+
 
 
 

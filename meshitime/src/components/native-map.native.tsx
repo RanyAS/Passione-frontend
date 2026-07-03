@@ -1,0 +1,1 @@
+export { NativeMap } from './native-map.shared';
