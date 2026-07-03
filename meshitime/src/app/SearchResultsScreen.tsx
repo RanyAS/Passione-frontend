@@ -1,5 +1,5 @@
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Image,
   Platform,
@@ -24,7 +24,8 @@ interface Restaurant {
   id: string;
   name: string;
   nameEn: string;
-  category: string;
+  category: Category;
+  tags: Category[];
   image: string;
   rating: number;
   reviewCount: number;
@@ -45,12 +46,21 @@ const FILTERS: { label: Category; icon: string }[] = [
   { label: "人気", icon: "⭐" },
 ];
 
+const ROUTE_TO_FILTER_LABEL: Record<string, Category> = {
+  all: "すべて",
+  nearby: "近く",
+  japanese: "和食",
+  western: "洋食",
+  popular: "人気",
+};
+
 export const RESULTS: Restaurant[] = [
   {
     id: "1",
     name: "吉野家 渋谷店",
     nameEn: "Yoshinoya Shibuya",
     category: "和食",
+    tags: ["近く", "和食", "人気"],
     image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400",
     rating: 4.2,
     reviewCount: 156,
@@ -67,6 +77,7 @@ export const RESULTS: Restaurant[] = [
     name: "らーめん 一蘭",
     nameEn: "Ichiran Ramen",
     category: "和食",
+    tags: ["近く", "和食", "人気"],
     image: "https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=400",
     rating: 4.6,
     reviewCount: 482,
@@ -83,6 +94,7 @@ export const RESULTS: Restaurant[] = [
     name: "トラットリア ソーレ",
     nameEn: "Trattoria Sole",
     category: "洋食",
+    tags: ["近く", "洋食"],
     image: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400",
     rating: 4.4,
     reviewCount: 98,
@@ -99,6 +111,7 @@ export const RESULTS: Restaurant[] = [
     name: "寿司処 海",
     nameEn: "Sushi Kai",
     category: "和食",
+    tags: ["和食", "人気"],
     image: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400",
     rating: 4.8,
     reviewCount: 210,
@@ -186,8 +199,34 @@ const RestaurantCard: React.FC<{ item: Restaurant; onPress: () => void }> = ({
 
 const SearchResultsScreen: React.FC = () => {
   const router = useRouter();
-  const [query, setQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState<Category>("すべて");
+  const params = useLocalSearchParams<{ filter?: string; query?: string }>();
+  const initialFilter = ROUTE_TO_FILTER_LABEL[params.filter ?? ""] ?? "すべて";
+  const [query, setQuery] = useState(params.query ?? "");
+  const [activeFilter, setActiveFilter] = useState<Category>(initialFilter);
+
+  useEffect(() => {
+    setActiveFilter(ROUTE_TO_FILTER_LABEL[params.filter ?? ""] ?? "すべて");
+  }, [params.filter]);
+
+  useEffect(() => {
+    setQuery(params.query ?? "");
+  }, [params.query]);
+
+  const filteredResults = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    return RESULTS.filter((restaurant) => {
+      const byCategory =
+        activeFilter === "すべて" || restaurant.tags.includes(activeFilter);
+      const byQuery =
+        normalizedQuery.length === 0 ||
+        restaurant.name.toLowerCase().includes(normalizedQuery) ||
+        restaurant.nameEn.toLowerCase().includes(normalizedQuery) ||
+        restaurant.dealTitle.toLowerCase().includes(normalizedQuery);
+
+      return byCategory && byQuery;
+    });
+  }, [activeFilter, query]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -198,17 +237,17 @@ const SearchResultsScreen: React.FC = () => {
           <View>
             <Text style={styles.headerTitle}>検索結果</Text>
             <Text style={styles.headerSubtitle}>
-              {RESULTS.length}件のお得情報が見つかりました
+              {filteredResults.length}件のお得情報が見つかりました
             </Text>
           </View>
 
           <View style={styles.viewToggle}>
-            <View style={[styles.viewToggleBtn, styles.viewToggleBtnInactive]}>
-              <Text style={styles.viewToggleIconInactive}>🗺</Text>
-            </View>
-            <View style={[styles.viewToggleBtn, styles.viewToggleBtnActive]}>
-              <Text style={styles.viewToggleIconActive}>☰</Text>
-            </View>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => router.push("/HomeMapScreen")}
+              style={[styles.viewToggleBtn, styles.viewToggleBtnActive]}>
+              <Text style={styles.viewToggleIconActive}>←</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -266,14 +305,14 @@ const SearchResultsScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {RESULTS.map((item) => (
+        {filteredResults.map((item) => (
           <RestaurantCard
             key={item.id}
             item={item}
             onPress={() =>
               router.push({
-                pathname: "./restaurant-detail",
-                params: { id: item.id },
+                pathname: "/restaurant-detail",
+                params: { id: item.id, source: "search" },
               })
             }
           />
@@ -308,8 +347,8 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 12,
+    paddingTop: 45,
+    paddingBottom: 32,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
     ...cardShadow,
@@ -326,7 +365,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: BG,
     borderRadius: 999,
-    padding: 3,
+    padding: 5,
   },
   viewToggleBtn: {
     width: 38,

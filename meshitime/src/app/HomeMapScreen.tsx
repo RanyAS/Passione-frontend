@@ -16,7 +16,7 @@ import {
 import { EmptyState } from '../components/empty-state';
 import { homeFilters } from '../components/data/meshitime-data';
 import { useMeshitime } from '../../provider/meshitime-provider';
-import type { Restaurant } from '../../types/meshitime';
+import type { Restaurant, RestaurantCategory } from '../../types/meshitime';
 import { triggerFeedback } from '../../utils/feedback';
 import { NativeMap } from '../components/native-map.native';
 
@@ -64,6 +64,17 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
     const handlePinPress = (restaurant: Restaurant) => {
         triggerFeedback('light');
         setSelectedRestaurant(restaurant);
+    };
+
+    const handleFilterPress = (filterValue: RestaurantCategory) => {
+      setSelectedFilter(filterValue);
+      router.push({
+        pathname: '/SearchResultsScreen',
+        params: {
+          filter: filterValue,
+          query: searchText || undefined,
+        },
+      });
     };
     
     return (
@@ -114,7 +125,7 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
             <Pressable
               key={filter.value}
               style={[styles.filterChip, isActive && styles.filterChipActive]}
-              onPress={() => setSelectedFilter(filter.value)}
+              onPress={() => handleFilterPress(filter.value)}
               accessibilityRole="button">
               <Text style={[styles.filterText, isActive && styles.filterTextActive]}>
                 {filter.icon} {filter.label}
@@ -124,15 +135,20 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
         })}
       </ScrollView>
       
-      
-      <Pressable
-        style={styles.bottomPeek}
-        onPress={() => setSelectedRestaurant(pins[0] ?? null)}
-        accessibilityRole="button">
+            
+      <View style={styles.bottomPeek}>
         <View style={styles.peekHandle} />
         <Text style={styles.peekTitle}>{filteredRestaurants.length}件のお得情報</Text>
         <Text style={styles.peekSubtitle}>あなたの近くで利用可能</Text>
-      </Pressable>
+        <View style={styles.bottomActions}>
+          <Pressable style={styles.bottomActionButton} onPress={() => router.push('/favorites')}>
+            <Text style={styles.bottomActionText}>お気に入り</Text>
+          </Pressable>
+          <Pressable style={styles.bottomActionButton} onPress={() => router.push('/profile')}>
+            <Text style={styles.bottomActionText}>プロフィール</Text>
+          </Pressable>
+        </View>
+      </View>
       
       
       <Modal

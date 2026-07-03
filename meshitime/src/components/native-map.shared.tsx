@@ -3,7 +3,7 @@ import { StyleSheet, View, ViewStyle, Text } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type { Restaurant } from '../../types/meshitime';
 //import from .env
-const FALLBACK_GOOGLE_MAPS_API_KEY= process.env.OPENROUTER_API_KEY ?? '';
+const FALLBACK_GOOGLE_MAPS_API_KEY= process.env.GOOGLE_MAPS_API_KEY ?? '';
 
 
 type Region = {
@@ -31,7 +31,7 @@ export function NativeMap({
   pins,
   onMarkerPress,
 }: NativeMapProps) {
-  const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? FALLBACK_GOOGLE_MAPS_API_KEY;
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY ?? FALLBACK_GOOGLE_MAPS_API_KEY;
   const hasValidApiKey = apiKey && apiKey !== 'YOUR_GOOGLE_MAPS_API_KEY';
   const activeRegion = region ?? initialRegion;
 

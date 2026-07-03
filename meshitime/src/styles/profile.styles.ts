@@ -12,7 +12,7 @@ export const profileStyles = StyleSheet.create({
     paddingBottom: 44,
     position: "relative",
   },
-  settingIcon: {
+  settingButton: {
     position: "absolute",
     right: 24,
     top: 42,
@@ -20,10 +20,21 @@ export const profileStyles = StyleSheet.create({
     height: 42,
     borderRadius: 21,
     backgroundColor: "rgba(255,255,255,0.25)",
-    textAlign: "center",
-    lineHeight: 42,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.35)",
+  },
+  settingIcon: {
+    color: "#FFFFFF",
+    fontSize: 20,
+    lineHeight: 20,
+    fontWeight: "700",
+  },
+  backIcon: {
     color: "#FFFFFF",
     fontSize: 22,
+    lineHeight: 22,
   },
   avatar: {
     width: 96,

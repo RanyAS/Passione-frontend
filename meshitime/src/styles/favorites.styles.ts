@@ -1,6 +1,10 @@
 import { StyleSheet } from "react-native";
 
 export const favoriteStyles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F3F4F8",
+  },
   container: {
     flex: 1,
     backgroundColor: "#F3F4F8",

@@ -11,12 +11,12 @@ export default function RegisterScreen() {
   const router = useRouter();
 
   const handlePersonalRegister = () => {
-    router.push("./Register/IndividualRegisterScreen");
+    router.push("/Register/IndividualRegisterScreen");
     console.log("個人登録画面へ遷移");
   };
 
   const handleShopRegister = () => {
-    router.push("./Register/ShopRegisterScreen");
+    router.push("/Register/ShopRegisterScreen");
     console.log("お店登録画面へ遷移");
   };
 

@@ -256,9 +256,17 @@ const ReviewCard: React.FC<{ item: Review }> = ({ item }) => (
 
 const RestaurantDetailScreen: React.FC = () => {
   const router = useRouter();
-  const params = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{ id?: string; source?: string }>();
   const id = params.id ?? "1";
   const r = RESTAURANTS[id] ?? RESTAURANTS["1"];
+  const handleBackPress = () => {
+    if (params.source === "favorites") {
+      router.push("/favorites");
+      return;
+    }
+
+    router.back();
+  };
 
   return (
     <View style={styles.root}>
@@ -278,7 +286,7 @@ const RestaurantDetailScreen: React.FC = () => {
           <TouchableOpacity
             style={[styles.fab, styles.fabLeft]}
             activeOpacity={0.85}
-            onPress={() => router.back()}
+            onPress={handleBackPress}
           >
             <Text style={styles.fabIcon}>←</Text>
           </TouchableOpacity>
@@ -287,9 +295,9 @@ const RestaurantDetailScreen: React.FC = () => {
             <TouchableOpacity style={styles.fab} activeOpacity={0.85}>
               <Text style={[styles.fabIcon, { color: RED }]}>♡</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.fab} activeOpacity={0.85}>
+            {/* <TouchableOpacity style={styles.fab} activeOpacity={0.85}>
               <Text style={styles.fabIcon}>↗</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
 
@@ -350,7 +358,7 @@ const RestaurantDetailScreen: React.FC = () => {
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>メニュー</Text>
             <TouchableOpacity>
-              <Text style={styles.sectionAction}>すべて見る ›</Text>
+              <Text style={styles.sectionAction}>すべて見る →</Text>
             </TouchableOpacity>
           </View>
           <ScrollView
@@ -367,7 +375,7 @@ const RestaurantDetailScreen: React.FC = () => {
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>レビュー</Text>
             <TouchableOpacity>
-              <Text style={styles.sectionAction}>すべて見る ›</Text>
+              <Text style={styles.sectionAction}>すべて見る →</Text>
             </TouchableOpacity>
           </View>
           {r.reviews.map((rev) => (
@@ -383,8 +391,9 @@ const RestaurantDetailScreen: React.FC = () => {
         <TouchableOpacity style={styles.ctaSecondary} activeOpacity={0.85}>
           <Text style={styles.ctaSecondaryText}>🗺 ルート案内</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.ctaPrimary} activeOpacity={0.85}>
-          <Text style={styles.ctaPrimaryText}>今すぐ予約</Text>
+        <TouchableOpacity onPress={() => router.push('/ConfirmationScreen')}
+        style={styles.ctaPrimary} activeOpacity={0.85}>
+          <Text style={styles.ctaPrimaryText}>今すぐ予約 </Text>
         </TouchableOpacity>
       </View>
     </View>
