@@ -29,7 +29,7 @@ export function LocationPermissionScreen() {
   const handleContinue = () => {
     updateAppSettings({ locationPermission: selected });
     showToast('位置情報設定を更新しました', 'success');
-    //router.replace('/(tabs)');
+    router.replace('/HomeMapScreen');
   };
 
   return (

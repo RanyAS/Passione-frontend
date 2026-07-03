@@ -1,11 +1,14 @@
-import { ScrollView, Text, View } from "react-native";
+import { router } from "expo-router";
+import { useState } from "react";
+import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import HistoryItem from "../components/ui/history-item";
-import { profileStyles as styles } from "../styles/profile.styles";
 import SettingMenuItem from "../components/ui/setting-menu-item";
+import { profileStyles as styles } from "../styles/profile.styles";
 
 const histories = [
   {
     id: 1,
+    routeId: "1",
     name: "らーめん横丁",
     date: "2026年5月19日",
     discount: "-30%",
@@ -15,6 +18,7 @@ const histories = [
   },
   {
     id: 2,
+    routeId: "2",
     name: "寿司 銀座",
     date: "2026年5月17日",
     discount: "-25%",
@@ -24,6 +28,7 @@ const histories = [
   },
   {
     id: 3,
+    routeId: "3",
     name: "イタリアン トラットリア",
     date: "2026年5月15日",
     discount: "-20%",
@@ -34,42 +39,66 @@ const histories = [
 ];
 
 export default function ProfileScreen() {
-  const handlePressHistory = (name: string) => {
-    console.log(`${name} の履歴が押されました`);
+  const [isSettingModalVisible, setSettingModalVisible] = useState(false);
+
+  const handlePressHistory = (routeId: string) => {
+    router.push({
+      pathname: "/restaurant-detail",
+      params: { id: routeId },
+    });
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.settingIcon}>⚙</Text>
+    <>
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={{
+              position: "absolute",
+              left: 24,
+              top: 42,
+              width: 42,
+              height: 42,
+              borderRadius: 21,
+              backgroundColor: "rgba(255,255,255,0.25)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onPress={() => router.push("/HomeMapScreen")}>
+            <Text style={styles.backIcon}>←</Text>
+          </TouchableOpacity>
 
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>TY</Text>
+          <TouchableOpacity
+            style={styles.settingButton}
+            activeOpacity={0.8}
+            onPress={() => setSettingModalVisible(true)}>
+            <Text style={styles.settingIcon}>⚙</Text>
+          </TouchableOpacity>
+
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>TY</Text>
+          </View>
+
+          <Text style={styles.name}>田中 太郎</Text>
+          <Text style={styles.email}>tanaka.taro@example.com</Text>
         </View>
 
-        <Text style={styles.name}>田中 太郎</Text>
-        <Text style={styles.email}>tanaka.taro@example.com</Text>
-      </View>
+        <View style={styles.statsCard}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>24</Text>
+            <Text style={styles.statLabel}>訪問数</Text>
+          </View>
 
-      <View style={styles.statsCard}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>24</Text>
-          <Text style={styles.statLabel}>訪問数</Text>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>12</Text>
+            <Text style={styles.statLabel}>お気に入り</Text>
+          </View>
+
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>8</Text>
+            <Text style={styles.statLabel}>レビュー</Text>
+          </View>
         </View>
-
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>12</Text>
-          <Text style={styles.statLabel}>お気に入り</Text>
-        </View>
-
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>8</Text>
-          <Text style={styles.statLabel}>レビュー</Text>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>利用履歴</Text>
 
         <View style={styles.section}>
   <Text style={styles.sectionTitle}>設定</Text>

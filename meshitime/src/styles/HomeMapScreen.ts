@@ -126,6 +126,26 @@ export const styles=StyleSheet.create({
     color: MeshitimeColors.textMuted,
     fontSize: 13,
   },
+  bottomActions: {
+    marginTop: 12,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  bottomActionButton: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bottomActionText: {
+    color: '#374151',
+    fontSize: 13,
+    fontWeight: '700',
+  },
   modalContainer: {
     flex: 1,
     justifyContent: 'flex-end',

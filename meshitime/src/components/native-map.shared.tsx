@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import { StyleSheet, View, ViewStyle, Text } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type { Restaurant } from '../../types/meshitime';
+//import from .env
+const FALLBACK_GOOGLE_MAPS_API_KEY= process.env.GOOGLE_MAPS_API_KEY ?? '';
 
-//GOOGLE API KEY
-const FALLBACK_GOOGLE_MAPS_API_KEY = 'AIzaSyCl93wern0r2xXl0yc2PqJcrMKwNakpaVA';
 
 type Region = {
   latitude: number;
@@ -31,7 +31,7 @@ export function NativeMap({
   pins,
   onMarkerPress,
 }: NativeMapProps) {
-  const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? FALLBACK_GOOGLE_MAPS_API_KEY;
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY ?? FALLBACK_GOOGLE_MAPS_API_KEY;
   const hasValidApiKey = apiKey && apiKey !== 'YOUR_GOOGLE_MAPS_API_KEY';
   const activeRegion = region ?? initialRegion;
 

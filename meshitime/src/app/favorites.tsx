@@ -1,11 +1,14 @@
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import FavoriteCard from "../components/ui/favorite-card";
 import { favoriteStyles as styles } from "../styles/favorites.styles";
+import { router } from "expo-router";
 
 
 const favoriteRestaurants = [
   {
     id: 1,
+    routeId: "1",
     name: "ラーメン横丁",
     image: "🍜",
     rating: 4.2,
@@ -16,6 +19,7 @@ const favoriteRestaurants = [
   },
    {
     id: 2,
+    routeId: "2",
     name: "寿司 銀座",
     image: "🍣",
     rating: 4.5,
@@ -26,6 +30,7 @@ const favoriteRestaurants = [
   },
   {
     id: 3,
+    routeId: "3",
     name: "イタリアン",
     image: "🍕",
     rating: 4.3,
@@ -36,6 +41,7 @@ const favoriteRestaurants = [
   },
   {
     id: 4,
+    routeId: "4",
     name:"カフェモーニング",
     image:"☕",
     rating: 4.1,
@@ -46,6 +52,7 @@ const favoriteRestaurants = [
   },
   {
     id: 5,
+    routeId: "1",
     name: "焼肉 炎",
     image: "🥩",
     rating: 4.4,
@@ -56,6 +63,7 @@ const favoriteRestaurants = [
   },
   {
     id: 6,
+    routeId: "2",
     name: "天ぷら さくら",
     image: "🍤",
     rating: 4.6,
@@ -67,8 +75,13 @@ const favoriteRestaurants = [
 ]
 
 export default function FavoritesScreen() {
-  const handlePressRestaurant = (restaurantName: string) => {
-    console.log(`${restaurantName} が押されました`);
+  const insets = useSafeAreaInsets();
+
+  const handlePressRestaurant = (routeId: string) => {
+    router.push({
+      pathname: "/restaurant-detail",
+      params: { id: routeId, source: "favorites" },
+    });
   };
 
   const handlePressHeart = (restaurantName: string) => {
@@ -76,33 +89,43 @@ export default function FavoritesScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <Text style={styles.backIcon}>←</Text>
-        <View>
-          <Text style={styles.title}>お気に入り</Text>
-          <Text style={styles.subtitle}>
-            {favoriteRestaurants.length}件のレストラン
-          </Text>
+    <View style={styles.safeArea}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 28 },
+        ]}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.push('/HomeMapScreen')}>
+            <Text style={styles.backIcon}>←</Text>
+          </TouchableOpacity>
+          <View>
+            <Text style={styles.title}>お気に入り</Text>
+            <Text style={styles.subtitle}>
+              {favoriteRestaurants.length}件のレストラン
+            </Text>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.cardGrid}>
-        {favoriteRestaurants.map((restaurant) => (
-          <FavoriteCard
-            key={restaurant.id}
-            name={restaurant.name}
-            image={restaurant.image}
-            rating={restaurant.rating}
-            discount={restaurant.discount}
-            price={restaurant.price}
-            isHotDeal={restaurant.isHotDeal}
-            bgColor={restaurant.bgColor}
-            onPress={() => handlePressRestaurant(restaurant.name)}
-            onPressHeart={() => handlePressHeart(restaurant.name)}
-          />
-        ))}
-      </View>
-    </ScrollView>
+        <View style={styles.cardGrid}>
+          {favoriteRestaurants.map((restaurant) => (
+            <FavoriteCard
+              key={restaurant.id}
+              name={restaurant.name}
+              image={restaurant.image}
+              rating={restaurant.rating}
+              discount={restaurant.discount}
+              price={restaurant.price}
+              isHotDeal={restaurant.isHotDeal}
+              bgColor={restaurant.bgColor}
+              onPress={() => handlePressRestaurant(restaurant.routeId)}
+              onPressHeart={() => handlePressHeart(restaurant.name)}
+            />
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
