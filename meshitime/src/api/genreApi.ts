@@ -1,4 +1,4 @@
-const IP_ADDRESS = "10.109.0.104";    // 自分のIPアドレスに変更
+const IP_ADDRESS = "10.109.0.147";    // 自分のIPアドレスに変更
 const BASE_URL = `http://${IP_ADDRESS}:3000`;
 
 export async function getGenre() {

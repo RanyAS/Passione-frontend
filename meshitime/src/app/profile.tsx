@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+
 import HistoryItem from "../components/ui/history-item";
 import SettingMenuItem from "../components/ui/setting-menu-item";
 import { profileStyles as styles } from "../styles/profile.styles";
@@ -49,99 +50,112 @@ export default function ProfileScreen() {
   };
 
   return (
-    <>
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={{
-              position: "absolute",
-              left: 24,
-              top: 42,
-              width: 42,
-              height: 42,
-              borderRadius: 21,
-              backgroundColor: "rgba(255,255,255,0.25)",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            onPress={() => router.push("/HomeMapScreen")}>
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 24 }}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={{
+            position: "absolute",
+            left: 24,
+            top: 42,
+            width: 42,
+            height: 42,
+            borderRadius: 21,
+            backgroundColor: "rgba(255,255,255,0.25)",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onPress={() => router.push("/HomeMapScreen")}
+        >
+          <Text style={styles.backIcon}>←</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.settingButton}
-            activeOpacity={0.8}
-            onPress={() => setSettingModalVisible(true)}>
-            <Text style={styles.settingIcon}>⚙</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingButton}
+          activeOpacity={0.8}
+          onPress={() => setSettingModalVisible(true)}
+        >
+          <Text style={styles.settingIcon}>⚙</Text>
+        </TouchableOpacity>
 
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>TY</Text>
-          </View>
-
-          <Text style={styles.name}>田中 太郎</Text>
-          <Text style={styles.email}>tanaka.taro@example.com</Text>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>TY</Text>
         </View>
 
-        <View style={styles.statsCard}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>24</Text>
-            <Text style={styles.statLabel}>訪問数</Text>
-          </View>
+        <Text style={styles.name}>田中 太郎</Text>
+        <Text style={styles.email}>
+          tanaka.taro@example.com
+        </Text>
+      </View>
 
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>12</Text>
-            <Text style={styles.statLabel}>お気に入り</Text>
-          </View>
 
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>8</Text>
-            <Text style={styles.statLabel}>レビュー</Text>
-          </View>
+      {/* Statistics */}
+      <View style={styles.statsCard}>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>24</Text>
+          <Text style={styles.statLabel}>訪問数</Text>
         </View>
 
-        <View style={styles.section}>
-  <Text style={styles.sectionTitle}>設定</Text>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>12</Text>
+          <Text style={styles.statLabel}>お気に入り</Text>
+        </View>
 
-  <View style={styles.settingCard}>
-    <SettingMenuItem
-      icon="🔔"
-      label="通知設定"
-      iconColor="#2563EB"
-      onPress={() => console.log("通知設定")}
-    />
-
-    <SettingMenuItem
-      icon="💳"
-      label="支払い方法"
-      iconColor="#22C55E"
-      onPress={() => console.log("支払い方法")}
-    />
-
-    <SettingMenuItem
-      icon="?"
-      label="ヘルプ・サポート"
-      iconColor="#8B5CF6"
-      onPress={() => console.log("ヘルプ・サポート")}
-    />
-
-    <SettingMenuItem
-      icon="↪"
-      label="ログアウト"
-      iconColor="#EF4444"
-      onPress={() => console.log("ログアウト")}
-    />
-  </View>
-
-  <Text style={styles.versionText}>MESHITIME v1.0.0</Text>
-</View>
-
-<View>
-  
-</View>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>8</Text>
+          <Text style={styles.statLabel}>レビュー</Text>
+        </View>
+      </View>
 
 
+      {/* Settings */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>設定</Text>
 
+        <View style={styles.settingCard}>
+          <SettingMenuItem
+            icon="🔔"
+            label="通知設定"
+            iconColor="#2563EB"
+            onPress={() => console.log("通知設定")}
+          />
+
+          <SettingMenuItem
+            icon="💳"
+            label="支払い方法"
+            iconColor="#22C55E"
+            onPress={() => console.log("支払い方法")}
+          />
+
+          <SettingMenuItem
+            icon="?"
+            label="ヘルプ・サポート"
+            iconColor="#8B5CF6"
+            onPress={() => console.log("ヘルプ・サポート")}
+          />
+
+          <SettingMenuItem
+            icon="↪"
+            label="ログアウト"
+            iconColor="#EF4444"
+            onPress={() => console.log("ログアウト")}
+          />
+        </View>
+
+        <Text style={styles.versionText}>
+          MESHITIME v1.0.0
+        </Text>
+      </View>
+
+
+      {/* History */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>
+          利用履歴
+        </Text>
 
         {histories.map((history) => (
           <HistoryItem
@@ -152,10 +166,11 @@ export default function ProfileScreen() {
             price={history.price}
             image={history.image}
             bgColor={history.bgColor}
-            onPress={() => handlePressHistory(history.name)}
+            onPress={() => handlePressHistory(history.routeId)}
           />
         ))}
       </View>
+
     </ScrollView>
   );
 }
