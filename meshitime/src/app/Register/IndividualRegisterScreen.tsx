@@ -6,10 +6,13 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
 import { styles } from "../../styles/IndividualRegisterStyle";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
+import { registerUser } from "../../services/Auth/authService"
+import { router } from "expo-router";
 
 export default function IndividualRegister() {
   const [email, setEmail] = useState("");
@@ -39,7 +42,7 @@ export default function IndividualRegister() {
     }
   }
 
-  const handleRegister = () => {
+  const handleRegister = async() => {
     console.log({
       email,
       password,
@@ -47,9 +50,17 @@ export default function IndividualRegister() {
       address,
       imagePath,
     });
+    const account_type = 'individual';
+    const res = await registerUser(email, password, account_type, username, address, imagePath)
+
+    if('Error' in res) {
+      Alert.alert("登録失敗しました！");
+      return;
+    }
+
+    router.push('../profile');
   };
   
-  //toggle password visibility
   // Toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
@@ -89,7 +100,6 @@ export default function IndividualRegister() {
           <Ionicons name={showPassword ? "eye-off" : "eye"} size={20} color="gray" />
         </TouchableOpacity>
       </View>
-    {/* //password 8 characters minimum, at least one letter and one number */}
       <Text style={{ color: "gray", marginBottom: 16 }}>
         Password must be at least 8 characters, and include at least one letter and one number.
       </Text>

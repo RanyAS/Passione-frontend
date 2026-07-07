@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,9 +6,16 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
 import { styles } from "../../styles/ShopRegisterStyle";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { registerUser } from "../../services/Auth/authService"
+import { router } from "expo-router";
+import { getGenre } from "../../api/genreApi"
+import { Genre } from "../../types/Genre";
+import { Picker } from "@react-native-picker/picker";
 
 export default function ShopRegister() {
   const [email, setEmail] = useState("");
@@ -20,24 +27,79 @@ export default function ShopRegister() {
   const [shopName, setShopName] = useState("");
   const [businessHours, setBusinessHours] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [selectedGenre, setSelectedGenre] = useState<string>("");
 
-  const handleRegister = () => {
-    console.log({
-      email,
-      password,
-      imagePath,
-      address,
-      tel,
-      site,
-      shopName,
-      businessHours,
+  const handleRegister = async () => {
+      try {
+
+          if (!selectedGenre) {
+              Alert.alert("ジャンルを選択してください。");
+              return;
+          }
+
+          const account_type = "store";
+
+          const res = await registerUser(
+              email,
+              password,
+              shopName,
+              address,
+              account_type,
+              imagePath,
+              tel,
+              site,
+              businessHours,
+              selectedGenre
+          );
+
+          console.log(res);
+
+          router.push("../profile");
+
+      } catch (error) {
+          console.log(error);
+          Alert.alert("Error", JSON.stringify(error));
+      }
+    };
+
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      alert("Permission to access media library is required!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
     });
-  };
+
+    if (!result.canceled) {
+      setImagePath(result.assets[0].uri);
+    }
+  }
   
   // Toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
+
+  useEffect(() => {
+      loadGenres();
+  }, []);
+
+  async function loadGenres() {
+      try {
+          const data = await getGenre();
+          console.log("Fetched genres:", data);
+          setGenres(data);
+      } catch (error) {
+          console.error(error);
+      }
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -119,14 +181,40 @@ export default function ShopRegister() {
       </View>
 
       <View style={styles.inputContainer}>
-        <Ionicons name="image-outline" size={20} color="gray" style={styles.inputIcon} />
-        <TextInput
-          style={styles.inputField}
-          placeholder="Image Path (optional)"
-          value={imagePath}
-          onChangeText={setImagePath}
-        />
+          <Ionicons
+              name="restaurant-outline"
+              size={20}
+              color="gray"
+              style={styles.inputIcon}
+          />
+
+          <Picker
+              selectedValue={selectedGenre}
+              style={{ flex: 1, height: 50 }}
+              onValueChange={(value) => setSelectedGenre(value)}
+          >
+              <Picker.Item
+                  label="ジャンルを選択してください"
+                  value=""
+              />
+
+              {genres.map((genre) => (
+                  <Picker.Item
+                      key={genre.id}
+                      label={genre.gname}
+                      value={genre.id}
+                  />
+              ))}
+          </Picker>
       </View>
+
+      <TouchableOpacity
+        style={styles.imagePicker}
+        onPress={pickImage}
+      >
+        <Ionicons name="camera" size={32} color="gray" />
+        <Text>Select Image</Text>
+      </TouchableOpacity>
 
       {imagePath !== "" && (
         <Image
