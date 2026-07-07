@@ -51,7 +51,7 @@ export default function IndividualRegister() {
       imagePath,
     });
     const account_type = 'individual';
-    const res = await registerUser(email, password, account_type, username, address, imagePath)
+    const res = await registerUser(email, password, username, address, account_type, imagePath);
 
     if('Error' in res) {
       Alert.alert("登録失敗しました！");
