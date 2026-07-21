@@ -4,6 +4,8 @@ import React, { useMemo, useState } from 'react';
 import { styles } from '../styles/HomeMapScreen';
 import { useLocation } from '../hooks/useLocation';
 import {
+    ActivityIndicator,
+    Alert,
     Modal,
     Pressable,
     ScrollView,
@@ -18,14 +20,14 @@ import { homeFilters } from '../components/data/meshitime-data';
 import { useMeshitime } from '../../provider/meshitime-provider';
 import type { Restaurant, RestaurantCategory } from '../../types/meshitime';
 import { triggerFeedback } from '../../utils/feedback';
-import { NativeMap } from '../components/native-map.native';
+import { NativeMap } from '../components/native-map';
 
 import { formatYen } from '../../utils/screen-utils';
 import { router } from 'expo-router';
 
 
 interface HomeMapScreenProps {
-  onOpenRestaurant: (restaurantId: string) => void;
+  onOpenRestaurant?: (restaurantId: string) => void;
 }
 
 // function getRestaurantImage(restaurant: Restaurant) {
@@ -55,6 +57,8 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
     });
     
     const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
+    const [isLocating, setIsLocating] = useState(false);
+    const [showsUserLocation, setShowsUserLocation] = useState(false);
     
     const pins = useMemo(
         () => (filteredRestaurants.length > 0 ? filteredRestaurants : restaurants).slice(0, 10),
@@ -76,6 +80,40 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
         },
       });
     };
+
+    const handleBackToMyLocation = async () => {
+      if (isLocating) {
+        return;
+      }
+
+      try {
+        setIsLocating(true);
+        triggerFeedback('light');
+        const location = await getCurrentLocation();
+
+        if (!location) {
+          setShowsUserLocation(false);
+          Alert.alert(
+            '位置情報',
+            '現在地を取得できません。位置情報の許可を確認するか、最新の開発ビルドをインストールしてください。'
+          );
+          return;
+        }
+
+        setShowsUserLocation(true);
+        setRegion((prev) => ({
+          ...prev,
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+          latitudeDelta: 0.02,
+          longitudeDelta: 0.02,
+        }));
+      } catch {
+        Alert.alert('位置情報', '現在地の取得に失敗しました。もう一度お試しください。');
+      } finally {
+        setIsLocating(false);
+      }
+    };
     
     return (
         <View style={styles.container}>
@@ -85,6 +123,7 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
                 region={region}
                 pins={pins}
                 onMarkerPress={handlePinPress}
+                showsUserLocation={showsUserLocation}
                 markerBubbleStyle={{
                     width: 40,
                     height: 40,
@@ -192,10 +231,10 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
                     <Pressable
                       style={styles.primaryCta}
                       onPress={() => {
-                        router.replace('/ConfirmationScreen');
                         const id = selectedRestaurant.id;
                         setSelectedRestaurant(null);
-                        onOpenRestaurant(id);
+                        onOpenRestaurant?.(id);
+                        router.replace('/ConfirmationScreen');
                       }}>
                       <Text style={styles.primaryCtaText}>今すぐ予約</Text>
                     </Pressable>
@@ -212,19 +251,16 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
         </View>
     </Modal> 
     <Pressable
-      style={styles.backToMyLocationButton}
-      onPress={async () => {
-        const location = await getCurrentLocation();
-        if (location) {
-          setRegion((prev) => ({
-            ...prev,
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-          }));
-        }
-      }}>
-      <Ionicons name="locate-outline" size={27} color="#ffffff" />
-      <Text style={styles.backToMyLocationText}></Text>
+      style={[styles.backToMyLocationButton, isLocating && styles.backToMyLocationButtonDisabled]}
+      onPress={handleBackToMyLocation}
+      disabled={isLocating}
+      accessibilityRole="button"
+      accessibilityLabel="現在地に戻る">
+      {isLocating ? (
+        <ActivityIndicator color="#E85D04" size="small" />
+      ) : (
+        <Ionicons name="locate" size={24} color="#E85D04" />
+      )}
     </Pressable>
  </View>
  );

@@ -1,1 +1,1 @@
-// export { NativeMap } from './native-map.shared';
+export { NativeMap } from "./native-map.web";
