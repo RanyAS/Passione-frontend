@@ -2,12 +2,13 @@ import React from "react";
 import { Stack, router } from "expo-router";
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import OnboardingScreen from "@/app/onboarding";
+import HomeMapScreen from "./HomeMapScreen";
 
 export default function RootLayout() {
-  const [showOnboarding, setShowOnboarding] = React.useState(true);
+  const [showHomeMapScreen, setShowHomeMapScreen] = React.useState(true);
 
   //一旦コメントアウトします。
-  // if (showOnboarding) {
+  // if (showHomeMapScreen) {
   //   return (
   //     <OnboardingScreen
   //       onFinish={() => {
