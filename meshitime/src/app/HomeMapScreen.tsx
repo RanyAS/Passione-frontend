@@ -12,7 +12,6 @@ import {
     View,
 } from 'react-native';
 
-
 import { EmptyState } from '../components/empty-state';
 import { homeFilters } from '../components/data/meshitime-data';
 import { useMeshitime } from '../../provider/meshitime-provider';
