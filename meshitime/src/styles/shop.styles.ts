@@ -1,0 +1,238 @@
+import { StyleSheet } from "react-native";
+import { MeshitimeColors } from "@/theme/meshitime-theme";
+
+export const shopStyles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: MeshitimeColors.background,
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  header: {
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: MeshitimeColors.text,
+  },
+  subtitle: {
+    marginTop: 4,
+    fontSize: 14,
+    color: MeshitimeColors.textMuted,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: MeshitimeColors.text,
+    marginBottom: 10,
+  },
+  statsRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 18,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: MeshitimeColors.card,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: MeshitimeColors.border,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: MeshitimeColors.text,
+  },
+  statLabel: {
+    marginTop: 4,
+    fontSize: 12,
+    color: MeshitimeColors.textMuted,
+  },
+  card: {
+    backgroundColor: MeshitimeColors.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: MeshitimeColors.border,
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: MeshitimeColors.text,
+  },
+  cardMeta: {
+    marginTop: 4,
+    fontSize: 13,
+    color: MeshitimeColors.textMuted,
+  },
+  badgeRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 10,
+  },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: "#F3F4F6",
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#374151",
+  },
+  badgePending: {
+    backgroundColor: "#FEF3C7",
+  },
+  badgePendingText: {
+    color: "#B45309",
+  },
+  badgeSuccess: {
+    backgroundColor: "#DCFCE7",
+  },
+  badgeSuccessText: {
+    color: "#15803D",
+  },
+  badgeError: {
+    backgroundColor: "#FEE2E2",
+  },
+  badgeErrorText: {
+    color: "#B91C1C",
+  },
+  badgeActive: {
+    backgroundColor: "#DBEAFE",
+  },
+  badgeActiveText: {
+    color: "#1D4ED8",
+  },
+  actionsRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 12,
+  },
+  primaryButton: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: 12,
+    backgroundColor: MeshitimeColors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 6,
+    paddingHorizontal: 12,
+  },
+  primaryButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+    fontSize: 14,
+  },
+  secondaryButton: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: MeshitimeColors.border,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 6,
+    paddingHorizontal: 12,
+  },
+  secondaryButtonText: {
+    color: MeshitimeColors.text,
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  dangerButton: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: 12,
+    backgroundColor: "#FEE2E2",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dangerButtonText: {
+    color: MeshitimeColors.error,
+    fontWeight: "800",
+    fontSize: 14,
+  },
+  emptyBox: {
+    backgroundColor: MeshitimeColors.card,
+    borderRadius: 16,
+    padding: 24,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: MeshitimeColors.border,
+  },
+  emptyText: {
+    marginTop: 8,
+    color: MeshitimeColors.textMuted,
+    textAlign: "center",
+    fontSize: 14,
+  },
+  input: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: MeshitimeColors.border,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: MeshitimeColors.text,
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: MeshitimeColors.textMuted,
+    marginBottom: 6,
+  },
+  filterRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 14,
+  },
+  filterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: MeshitimeColors.border,
+  },
+  filterChipActive: {
+    backgroundColor: MeshitimeColors.primary,
+    borderColor: MeshitimeColors.primary,
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#374151",
+  },
+  filterChipTextActive: {
+    color: "#FFFFFF",
+  },
+  fab: {
+    position: "absolute",
+    right: 16,
+    bottom: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: MeshitimeColors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+  },
+});
