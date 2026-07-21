@@ -101,105 +101,61 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>利用履歴</Text>
+  <Text style={styles.sectionTitle}>設定</Text>
 
-          {histories.map((history) => (
-            <HistoryItem
-              key={history.id}
-              name={history.name}
-              date={history.date}
-              discount={history.discount}
-              price={history.price}
-              image={history.image}
-              bgColor={history.bgColor}
-              onPress={() => handlePressHistory(history.routeId)}
-            />
-          ))}
-        </View>
-      </ScrollView>
+  <View style={styles.settingCard}>
+    <SettingMenuItem
+      icon="🔔"
+      label="通知設定"
+      iconColor="#2563EB"
+      onPress={() => console.log("通知設定")}
+    />
 
-      <Modal
-        visible={isSettingModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setSettingModalVisible(false)}>
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={() => setSettingModalVisible(false)}
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.4)",
-            justifyContent: "flex-end",
-          }}>
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={() => {}}
-            style={{
-              backgroundColor: "#F3F4F8",
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              padding: 18,
-              maxHeight: "82%",
-            }}>
-            <Text style={styles.sectionTitle}>設定</Text>
+    <SettingMenuItem
+      icon="💳"
+      label="支払い方法"
+      iconColor="#22C55E"
+      onPress={() => console.log("支払い方法")}
+    />
 
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.settingCard}>
-                <SettingMenuItem
-                  icon="🔔"
-                  label="通知設定"
-                  iconColor="#2563EB"
-                  onPress={() => console.log("通知設定")}
-                />
-                <SettingMenuItem
-                  icon="📄"
-                  label="プライバシーポリシー"
-                  iconColor="#2563EB"
-                  onPress={() => console.log("プライバシーポリシー")}
-                />
-                <SettingMenuItem
-                  icon="👤"
-                  label="ユーザー名変更"
-                  iconColor="#2563EB"
-                  onPress={() => console.log("ユーザー名変更")}
-                />
-                <SettingMenuItem
-                  icon="📧"
-                  label="メールアドレス変更"
-                  iconColor="#2563EB"
-                  onPress={() => console.log("メールアドレス変更")}
-                />
-                <SettingMenuItem
-                  icon="🔒"
-                  label="パスワード変更"
-                  iconColor="#2563EB"
-                  onPress={() => console.log("パスワード変更")}
-                />
-                <SettingMenuItem
-                  icon="💳"
-                  label="支払い方法"
-                  iconColor="#22C55E"
-                  onPress={() => console.log("支払い方法")}
-                />
-                <SettingMenuItem
-                  icon="?"
-                  label="ヘルプ・サポート"
-                  iconColor="#8B5CF6"
-                  onPress={() => console.log("ヘルプ・サポート")}
-                />
-                <SettingMenuItem
-                  icon="↪"
-                  label="ログアウト"
-                  iconColor="#EF4444"
-                  onPress={() => console.log("ログアウト")}
-                />
-              </View>
-            </ScrollView>
+    <SettingMenuItem
+      icon="?"
+      label="ヘルプ・サポート"
+      iconColor="#8B5CF6"
+      onPress={() => console.log("ヘルプ・サポート")}
+    />
 
-            <Text style={styles.versionText}>MESHITIME v1.0.0</Text>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
-    </>
+    <SettingMenuItem
+      icon="↪"
+      label="ログアウト"
+      iconColor="#EF4444"
+      onPress={() => console.log("ログアウト")}
+    />
+  </View>
+
+  <Text style={styles.versionText}>MESHITIME v1.0.0</Text>
+</View>
+
+<View>
+  
+</View>
+
+
+
+
+        {histories.map((history) => (
+          <HistoryItem
+            key={history.id}
+            name={history.name}
+            date={history.date}
+            discount={history.discount}
+            price={history.price}
+            image={history.image}
+            bgColor={history.bgColor}
+            onPress={() => handlePressHistory(history.name)}
+          />
+        ))}
+      </View>
+    </ScrollView>
   );
 }
