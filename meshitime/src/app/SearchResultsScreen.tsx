@@ -12,20 +12,18 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
+import { FILTERS, ROUTE_TO_FILTER_LABEL } from "../constants/category_label";
 /**
  * MESHITIME（めしタイム）— 検索結果画面 (RESULTS LIST)
  * カードをタップすると restaurant-detail へ id を渡して遷移する。
  */
 
-type Category = "すべて" | "近く" | "和食" | "洋食" | "人気";
-
 interface Restaurant {
   id: string;
   name: string;
   nameEn: string;
-  category: Category;
-  tags: Category[];
+  category: string;
+  tags: string[];
   image: string;
   rating: number;
   reviewCount: number;
@@ -37,22 +35,6 @@ interface Restaurant {
   seatsLeft: number;
   minutesLeft: number;
 }
-
-const FILTERS: { label: Category; icon: string }[] = [
-  { label: "すべて", icon: "🍜" },
-  { label: "近く", icon: "📍" },
-  { label: "和食", icon: "🍣" },
-  { label: "洋食", icon: "🍕" },
-  { label: "人気", icon: "⭐" },
-];
-
-const ROUTE_TO_FILTER_LABEL: Record<string, Category> = {
-  all: "すべて",
-  nearby: "近く",
-  japanese: "和食",
-  western: "洋食",
-  popular: "人気",
-};
 
 export const RESULTS: Restaurant[] = [
   {
@@ -202,7 +184,7 @@ const SearchResultsScreen: React.FC = () => {
   const params = useLocalSearchParams<{ filter?: string; query?: string }>();
   const initialFilter = ROUTE_TO_FILTER_LABEL[params.filter ?? ""] ?? "すべて";
   const [query, setQuery] = useState(params.query ?? "");
-  const [activeFilter, setActiveFilter] = useState<Category>(initialFilter);
+  const [activeFilter, setActiveFilter] = useState<string>(initialFilter);
 
   useEffect(() => {
     setActiveFilter(ROUTE_TO_FILTER_LABEL[params.filter ?? ""] ?? "すべて");
