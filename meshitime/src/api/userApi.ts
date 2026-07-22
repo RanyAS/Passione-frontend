@@ -6,7 +6,7 @@ export async function getUser(user_id:string): Promise<User> {
     return data;
 }
 
-export async function updateUser(user_id:string, user_data:Partial<User>) {
+export async function updateUser(user_id:string, user_data:Partial<User>): Promise<User> {
     const { data } = await api.put<User>(`/api/users/${user_id}`, user_data);
     return data;
 }
