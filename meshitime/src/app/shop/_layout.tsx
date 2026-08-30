@@ -67,6 +67,21 @@ export default function ShopLayout() {
           ),
         }}
       />
+      {/* Écrans liés, hors barre d’onglets */}
+      <Tabs.Screen
+        name="MenuRegister"
+        options={{
+          href: null,
+          title: "商品登録",
+        }}
+      />
+      <Tabs.Screen
+        name="MenuConfirmation"
+        options={{
+          href: null,
+          title: "登録確認",
+        }}
+      />
     </Tabs>
   );
 }

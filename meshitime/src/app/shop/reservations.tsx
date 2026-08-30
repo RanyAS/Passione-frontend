@@ -1,22 +1,24 @@
-import React, { useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { router } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
+  cancelReservation,
   confirmReservation,
   failReservation,
+  getReservationsByStore,
 } from "@/api/ReservationApi";
-import type { ReservationStatus } from "@/types/Reservation";
+import { DEMO_STORE_ID } from "@/constants/session";
+import type { Reservation, ReservationStatus } from "@/types/Reservation";
 import { notifyReservationDecision } from "@/services/notifications.service";
 import { shopStyles as styles } from "../../styles/shop.styles";
-
-type ShopReservation = {
-  id: string;
-  customerName: string;
-  partySize: number;
-  reservedAt: string;
-  offerTitle: string;
-  status: ReservationStatus;
-};
 
 const filters: { key: ReservationStatus | "all"; label: string }[] = [
   { key: "all", label: "すべて" },
@@ -52,40 +54,45 @@ const STATUS_UI: Record<
   },
 };
 
-const initialReservations: ShopReservation[] = [
-  {
-    id: "r1",
-    customerName: "田中 太郎",
-    partySize: 2,
-    reservedAt: "今日 19:00",
-    offerTitle: "ディナー20%OFF",
-    status: "pending",
-  },
-  {
-    id: "r2",
-    customerName: "佐藤 花子",
-    partySize: 3,
-    reservedAt: "今日 12:30",
-    offerTitle: "ランチ30%OFF",
-    status: "confirmed",
-  },
-  {
-    id: "r3",
-    customerName: "鈴木 一郎",
-    partySize: 1,
-    reservedAt: "昨日 18:00",
-    offerTitle: "ディナー20%OFF",
-    status: "failed",
-  },
-];
+function formatWhen(value: string | null) {
+  if (!value) return "日時未設定";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString("ja-JP", {
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 export default function ShopReservationsScreen() {
   const insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState<ReservationStatus | "all">(
     "all"
   );
-  const [reservations, setReservations] = useState(initialReservations);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [loading, setLoading] = useState(true);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadReservations = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getReservationsByStore(DEMO_STORE_ID);
+      setReservations(data);
+    } catch {
+      setReservations([]);
+      setError("予約の取得に失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadReservations();
+  }, [loadReservations]);
 
   const filtered = useMemo(() => {
     if (activeFilter === "all") return reservations;
@@ -93,48 +100,37 @@ export default function ShopReservationsScreen() {
   }, [activeFilter, reservations]);
 
   const decide = async (
-    item: ShopReservation,
-    status: "confirmed" | "failed"
+    item: Reservation,
+    status: "confirmed" | "failed" | "cancelled"
   ) => {
     setLoadingId(item.id);
 
     try {
-      if (status === "confirmed") {
-        await confirmReservation(item.id);
-      } else {
-        await failReservation(item.id);
-      }
+      const updated =
+        status === "confirmed"
+          ? await confirmReservation(item.id)
+          : status === "failed"
+            ? await failReservation(item.id)
+            : await cancelReservation(item.id);
 
       setReservations((prev) =>
-        prev.map((row) =>
-          row.id === item.id ? { ...row, status } : row
-        )
+        prev.map((row) => (row.id === item.id ? updated : row))
       );
 
       await notifyReservationDecision({
         status,
-        offerTitle: item.offerTitle,
+        offerTitle: item.pin?.description ?? undefined,
       });
 
-      Alert.alert(
-        "完了",
-        status === "confirmed" ? "予約を確定しました" : "予約を拒否しました"
-      );
+      const messages = {
+        confirmed: "予約を確定しました",
+        failed: "予約を拒否しました",
+        cancelled: "予約をキャンセルしました",
+      } as const;
+
+      Alert.alert("完了", messages[status]);
     } catch {
-      // Démo locale (r1/r2…) si l’API n’est pas encore dispo
-      if (item.id.startsWith("r")) {
-        setReservations((prev) =>
-          prev.map((row) =>
-            row.id === item.id ? { ...row, status } : row
-          )
-        );
-        Alert.alert(
-          "完了",
-          status === "confirmed" ? "予約を確定しました" : "予約を拒否しました"
-        );
-      } else {
-        Alert.alert("エラー", "予約の更新に失敗しました");
-      }
+      Alert.alert("エラー", "ステータスの更新に失敗しました");
     } finally {
       setLoadingId(null);
     }
@@ -150,6 +146,21 @@ export default function ShopReservationsScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>予約管理</Text>
           <Text style={styles.subtitle}>確認・承認・拒否をここで対応</Text>
+        </View>
+
+        <View style={styles.actionsRow}>
+          <Pressable
+            style={styles.secondaryButton}
+            onPress={() => router.push("/shop")}
+          >
+            <Text style={styles.secondaryButtonText}>ホームへ</Text>
+          </Pressable>
+          <Pressable
+            style={styles.primaryButton}
+            onPress={() => router.push("/shop/pins")}
+          >
+            <Text style={styles.primaryButtonText}>オファーへ</Text>
+          </Pressable>
         </View>
 
         <ScrollView
@@ -179,7 +190,19 @@ export default function ShopReservationsScreen() {
           })}
         </ScrollView>
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <ActivityIndicator style={{ marginTop: 40 }} />
+        ) : error ? (
+          <View style={styles.emptyBox}>
+            <Text style={styles.emptyText}>{error}</Text>
+            <Pressable
+              style={[styles.primaryButton, { marginTop: 16, flex: 0 }]}
+              onPress={() => void loadReservations()}
+            >
+              <Text style={styles.primaryButtonText}>再試行</Text>
+            </Pressable>
+          </View>
+        ) : filtered.length === 0 ? (
           <View style={styles.emptyBox}>
             <Text style={styles.emptyText}>該当する予約はありません</Text>
           </View>
@@ -187,12 +210,17 @@ export default function ShopReservationsScreen() {
           filtered.map((item) => {
             const badge = STATUS_UI[item.status];
             const busy = loadingId === item.id;
+            const offer =
+              item.pin?.description ?? item.pin?.time ?? "オファー";
 
             return (
               <View key={item.id} style={styles.card}>
-                <Text style={styles.cardTitle}>{item.customerName}</Text>
+                <Text style={styles.cardTitle}>
+                  顧客 {item.userId.slice(0, 12)}
+                </Text>
                 <Text style={styles.cardMeta}>
-                  {item.offerTitle} · {item.partySize}名 · {item.reservedAt}
+                  {offer} · {item.partySize}名 ·{" "}
+                  {formatWhen(item.reservedAt ?? item.createdAt)}
                 </Text>
 
                 <View style={styles.badgeRow}>
@@ -203,7 +231,6 @@ export default function ShopReservationsScreen() {
                   </View>
                 </View>
 
-                {/* pending → boutons ; sinon juste le badge */}
                 {item.status === "pending" ? (
                   <View style={styles.actionsRow}>
                     <Pressable
@@ -212,6 +239,13 @@ export default function ShopReservationsScreen() {
                       onPress={() => void decide(item, "failed")}
                     >
                       <Text style={styles.dangerButtonText}>拒否</Text>
+                    </Pressable>
+                    <Pressable
+                      style={styles.secondaryButton}
+                      disabled={busy}
+                      onPress={() => void decide(item, "cancelled")}
+                    >
+                      <Text style={styles.secondaryButtonText}>取消</Text>
                     </Pressable>
                     <Pressable
                       style={styles.primaryButton}

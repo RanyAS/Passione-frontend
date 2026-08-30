@@ -14,6 +14,10 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles as externalStyles } from "../styles/ConfirmationScreenStyle";
 import { MeshitimeColors } from "@/theme/meshitime-theme";
+import { createReservation } from "@/api/ReservationApi";
+import { getStorePin } from "@/api/StorePinApi";
+import { resolveSessionUserId } from "@/lib/sessionUser";
+import type { StorePin } from "@/types/StorePin";
 
 type ConfirmationStatus = "pending" | "success" | "error";
 
@@ -104,7 +108,11 @@ function StatusHeader({ status }: { status: ConfirmationStatus }) {
 
 export default function Page() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ result?: string }>();
+  const params = useLocalSearchParams<{
+    result?: string;
+    pinId?: string;
+    partySize?: string;
+  }>();
 
   return (
     <ConfirmationScreen
@@ -112,10 +120,16 @@ export default function Page() {
       onRetry={() =>
         router.replace({
           pathname: "/ConfirmationScreen",
-          params: { result: "pending" },
+          params: {
+            result: "pending",
+            pinId: params.pinId,
+            partySize: params.partySize,
+          },
         })
       }
       forcedResult={params.result as ConfirmationStatus | undefined}
+      pinId={params.pinId}
+      partySize={params.partySize ? Number(params.partySize) : 1}
     />
   );
 }
@@ -124,12 +138,35 @@ export function ConfirmationScreen({
   onGoHome,
   onRetry,
   forcedResult,
-}: ConfirmationScreenProps & { forcedResult?: ConfirmationStatus }) {
+  pinId,
+  partySize = 1,
+}: ConfirmationScreenProps & {
+  forcedResult?: ConfirmationStatus;
+  pinId?: string;
+  partySize?: number;
+}) {
   const [status, setStatus] = useState<ConfirmationStatus>(
     forcedResult === "success" || forcedResult === "error" || forcedResult === "pending"
       ? forcedResult
       : "pending"
   );
+  const [pin, setPin] = useState<StorePin | null>(null);
+
+  useEffect(() => {
+    if (!pinId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await getStorePin(pinId);
+        if (!cancelled) setPin(data);
+      } catch {
+        if (!cancelled) setPin(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pinId]);
 
   useEffect(() => {
     if (forcedResult === "success" || forcedResult === "error") {
@@ -137,15 +174,33 @@ export function ConfirmationScreen({
       return;
     }
 
-    // Simulate confirmation request until real API is wired.
-    // Use params.result=error to force the failure UI for testing.
+    let cancelled = false;
     setStatus("pending");
-    const timer = setTimeout(() => {
-      setStatus("success");
-    }, 2400);
 
-    return () => clearTimeout(timer);
-  }, [forcedResult]);
+    const run = async () => {
+      if (!pinId) {
+        if (!cancelled) setStatus("error");
+        return;
+      }
+
+      try {
+        const userId = await resolveSessionUserId();
+        await createReservation({
+          userId,
+          pinId,
+          partySize,
+        });
+        if (!cancelled) setStatus("success");
+      } catch {
+        if (!cancelled) setStatus("error");
+      }
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [forcedResult, pinId, partySize]);
 
   const handleAddDiscount = () => {
     // toast / feedback later
@@ -157,7 +212,6 @@ export function ConfirmationScreen({
       return;
     }
     setStatus("pending");
-    setTimeout(() => setStatus("success"), 2400);
   };
 
   return (
@@ -220,8 +274,12 @@ export function ConfirmationScreen({
             {status === "success" ? (
               <Animated.View entering={FadeInDown.delay(80).duration(350)} style={{ width: "100%" }}>
                 <View style={externalStyles.card}>
-                  <Text style={externalStyles.restaurant}>らーめん横丁</Text>
-                  <Text style={externalStyles.restaurantSub}>Ramen Yokocho</Text>
+                  <Text style={externalStyles.restaurant}>
+                    {pin?.store?.name ?? "店舗"}
+                  </Text>
+                  <Text style={externalStyles.restaurantSub}>
+                    {pin?.description ?? pin?.rule ?? "予約完了"}
+                  </Text>
 
                   <View style={externalStyles.row}>
                     <View style={externalStyles.rowIconBubble}>
@@ -229,7 +287,9 @@ export function ConfirmationScreen({
                     </View>
                     <View style={externalStyles.rowText}>
                       <Text style={externalStyles.rowLabel}>日時</Text>
-                      <Text style={externalStyles.rowValue}>2026年3月15日</Text>
+                      <Text style={externalStyles.rowValue}>
+                        {new Date().toLocaleDateString("ja-JP")}
+                      </Text>
                     </View>
                   </View>
 
@@ -239,7 +299,9 @@ export function ConfirmationScreen({
                     </View>
                     <View style={externalStyles.rowText}>
                       <Text style={externalStyles.rowLabel}>時間</Text>
-                      <Text style={externalStyles.rowValue}>19:00</Text>
+                      <Text style={externalStyles.rowValue}>
+                        {pin?.time ?? "時間未設定"}
+                      </Text>
                     </View>
                   </View>
 
@@ -249,7 +311,7 @@ export function ConfirmationScreen({
                     </View>
                     <View style={externalStyles.rowText}>
                       <Text style={externalStyles.rowLabel}>人数</Text>
-                      <Text style={externalStyles.rowValue}>2名</Text>
+                      <Text style={externalStyles.rowValue}>{partySize}名</Text>
                     </View>
                   </View>
 
@@ -259,28 +321,32 @@ export function ConfirmationScreen({
                     </View>
                     <View style={externalStyles.rowText}>
                       <Text style={externalStyles.rowLabel}>場所</Text>
-                      <Text style={externalStyles.rowValue}>東京都新宿区歌舞伎町1-1</Text>
+                      <Text style={externalStyles.rowValue}>
+                        {pin?.store?.address ?? "住所未設定"}
+                      </Text>
                     </View>
                   </View>
 
                   <View style={externalStyles.discountWrap}>
                     <View>
-                      <Text style={externalStyles.discountTitle}>割引</Text>
-                      <Text style={externalStyles.discountSubtitle}>30% OFF</Text>
+                      <Text style={externalStyles.discountTitle}>オファー</Text>
+                      <Text style={externalStyles.discountSubtitle}>
+                        {pin?.rule ?? pin?.description ?? "—"}
+                      </Text>
                     </View>
                     <View style={externalStyles.discountPriceWrap}>
-                      <Text style={externalStyles.discountOriginal}>¥890</Text>
-                      <Text style={externalStyles.discountFinal}>¥620</Text>
+                      <Text style={externalStyles.discountFinal}>
+                        空席 {pin?.emptySeat ?? 0}
+                      </Text>
                     </View>
                   </View>
 
                   <View style={externalStyles.qrBox}>
-                    <Text style={externalStyles.qrLabel}>割引QRコード</Text>
+                    <Text style={externalStyles.qrLabel}>予約確認</Text>
                   </View>
-                  <View style={externalStyles.discountNum}>
-                    <Text style={externalStyles.discountCodeLabel}>割引コード</Text>
-                  </View>
-                  <Text style={externalStyles.qrId}>ID: MESH-2024-A7B3</Text>
+                  <Text style={externalStyles.qrId}>
+                    PIN: {pinId ?? "—"}
+                  </Text>
                 </View>
 
                 <Pressable style={externalStyles.mainButton} onPress={handleAddDiscount}>
