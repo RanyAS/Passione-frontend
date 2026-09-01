@@ -17,7 +17,7 @@ import {
 } from "@/api/ReservationApi";
 import { DEMO_STORE_ID } from "@/constants/session";
 import type { Reservation, ReservationStatus } from "@/types/Reservation";
-import { notifyReservationDecision } from "@/services/notifications.service";
+import { notifyReservationDecision } from "../../services/notificationsService";
 import { shopStyles as styles } from "../../styles/shop.styles";
 
 const filters: { key: ReservationStatus | "all"; label: string }[] = [

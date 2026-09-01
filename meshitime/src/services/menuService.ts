@@ -1,5 +1,5 @@
-import { createStorePin } from "@/api/StorePinApi";
-import { DEMO_STORE_ID } from "@/constants/session";
+import { createStorePin } from "../api/StorePinApi";
+import { DEMO_STORE_ID } from "../constants/session";
 import {
   calculateDiscountPercent,
   type MenuRegistrationForm,
@@ -13,11 +13,6 @@ function buildEndsAt(form: MenuRegistrationForm): string | null {
   if (Number.isNaN(iso.getTime())) return null;
   return iso.toISOString();
 }
-
-/**
- * Enregistre l’offre comme StorePin (carte + réservations).
- * Les champs menu détaillés restent en description / rule pour la V1.
- */
 export async function saveMenu(form: MenuRegistrationForm) {
   if (!form.menuName.trim()) {
     throw new Error("menuName is required");

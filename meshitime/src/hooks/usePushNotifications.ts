@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { router } from "expo-router";
 import { Platform } from "react-native";
 import { requireOptionalNativeModule } from "expo-modules-core";
-import { registerForPushNotificationsAsync } from "@/services/notifications.service";
+import { registerForPushNotificationsAsync } from "../services/notificationsService";
 
 type NotificationData = {
   screen?: string;
@@ -26,10 +26,6 @@ function handleNotificationNavigation(data: NotificationData | undefined) {
   }
 }
 
-/**
- * Enregistre le token push au démarrage et gère le tap sur une notification.
- * No-op si le module natif n’est pas dans le build.
- */
 export function usePushNotifications() {
   const registered = useRef(false);
 
@@ -45,7 +41,6 @@ export function usePushNotifications() {
     let responseSub: { remove: () => void } | undefined;
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const Notifications = require("expo-notifications") as typeof import("expo-notifications");
 
       void registerForPushNotificationsAsync();
@@ -65,7 +60,6 @@ export function usePushNotifications() {
         handleNotificationNavigation(data);
       });
     } catch {
-      // Module JS présent mais native absent
     }
 
     return () => {
