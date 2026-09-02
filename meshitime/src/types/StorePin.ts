@@ -16,7 +16,7 @@ export interface StorePinStore {
 export interface StorePin {
   id: string;
   storeId: string;
-  time: string | null;
+  time: number | null;
   emptySeat: number;
   rule: string | null;
   description: string | null;

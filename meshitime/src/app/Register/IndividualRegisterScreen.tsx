@@ -13,6 +13,7 @@ import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { registerUser } from "../../services/Auth/authService"
 import { router } from "expo-router";
+import { uploadUserImage } from "@/api/userApi";
 
 export default function IndividualRegister() {
   const [email, setEmail] = useState("");
@@ -21,7 +22,6 @@ export default function IndividualRegister() {
   const [address, setAddress] = useState("");
   const [imagePath, setImagePath] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -42,23 +42,52 @@ export default function IndividualRegister() {
     }
   }
 
-  const handleRegister = async() => {
-    console.log({
-      email,
-      password,
-      username,
-      address,
-      imagePath,
-    });
-    const account_type = 'individual';
-    const res = await registerUser(email, password, username, address, account_type, imagePath);
+  const handleRegister = async () => {
+    try {
+      let imageUrl = "";
 
-    if('Error' in res) {
-      Alert.alert("登録失敗しました！");
-      return;
+      console.log({
+        email,
+        password,
+        username,
+        address,
+        imageUrl,
+      });
+
+      const account_type = "individual";
+
+      const res = await registerUser(
+        email,
+        password,
+        username,
+        address,
+        account_type,
+      );
+
+
+      if (!res.user) {
+        Alert.alert("登録失敗しました！");
+        return;
+      }
+
+      if (imagePath !== "") {
+        await uploadUserImage(res.user.id, imagePath);
+      }
+
+      Alert.alert(
+        "登録完了",
+        "確認メールを送信しました。メールを確認してからログインしてください。",
+        [
+          {
+            text: "OK",
+            onPress: () => router.replace("/login"),
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Registration error:", error);
+      Alert.alert("登録に失敗しました！");
     }
-
-    router.push('../profile');
   };
   
   // Toggle password visibility

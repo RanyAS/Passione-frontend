@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
 } from "react-native";
 import { useMeshitime } from "../../provider/meshitime-provider";
 import { getAllHistory } from "@/api/historyApi";
@@ -14,6 +15,7 @@ import { resolveSessionUserId } from "@/lib/sessionUser";
 import HistoryItem from "../components/ui/history-item";
 import SettingMenuItem from "../components/ui/setting-menu-item";
 import { profileStyles as styles } from "../styles/profile.styles";
+import { supabase } from "@/lib/supabase";
 
 type HistoryRow = {
   id: string;
@@ -27,6 +29,7 @@ type HistoryRow = {
 };
 
 export default function ProfileScreen() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { favorites, userProfile } = useMeshitime();
   const [histories, setHistories] = useState<HistoryRow[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
@@ -79,6 +82,28 @@ export default function ProfileScreen() {
   }, []);
 
   useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      setIsLoggedIn(!!session);
+    };
+
+    void checkSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
     void loadHistory();
   }, [loadHistory]);
 
@@ -121,7 +146,14 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initials}</Text>
+          {userProfile.imagePath ? (
+            <Image
+              source={{ uri: userProfile.imagePath }}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <Text style={styles.avatarText}>{initials}</Text>
+          )}
         </View>
 
         <Text style={styles.name}>{displayName}</Text>
@@ -170,12 +202,39 @@ export default function ProfileScreen() {
             onPress={() => undefined}
           />
 
-          <SettingMenuItem
-            icon="↪"
-            label="ログアウト"
-            iconColor="#EF4444"
-            onPress={() => undefined}
-          />
+          {isLoggedIn ? (
+            <SettingMenuItem
+              icon="↪"
+              label="ログアウト"
+              iconColor="#EF4444"
+              onPress={async () => {
+                try {
+                  await supabase.auth.signOut();
+                  setIsLoggedIn(false);
+                  router.replace("/HomeMapScreen");
+                } catch (error) {
+                  console.error("Logout error:", error);
+                }
+              }}
+            />
+          ) : (
+            <>
+              <SettingMenuItem
+                icon="↪"
+                label="ログイン"
+                iconColor="#2563EB"
+                onPress={() => router.push("/login")}
+              />
+
+              <SettingMenuItem
+                icon="✎"
+                label="新規登録"
+                iconColor="#22C55E"
+                onPress={() => router.push("/Register/RegisterScreen")}
+              />
+            </>
+          )}
+
           <SettingMenuItem
             icon="↪"
             label="店舗ダッシュボード"

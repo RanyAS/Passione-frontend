@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getStoreById } from "@/api/storeApi";
-import { DEMO_STORE_ID } from "@/constants/session";
+import { supabase } from "@/lib/supabase";
 import type { Store } from "@/types/Store";
 import { MeshitimeColors } from "@/theme/meshitime-theme";
 import { shopStyles as styles } from "../../styles/shop.styles";
@@ -76,7 +76,12 @@ export default function ShopProfileScreen() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getStoreById(DEMO_STORE_ID);
+      const { data: { session } } = await supabase.auth.getSession();
+      const storeId = session?.user.id;
+
+      if (!storeId) throw new Error("店舗情報の取得失敗！");
+
+      const data = await getStoreById(storeId);
       setStore(data);
     } catch {
       setStore(null);

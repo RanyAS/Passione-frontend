@@ -9,9 +9,9 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { getReservationsByStore } from "@/api/ReservationApi";
+import { getReservationsByUser } from "@/api/ReservationApi";
 import { getStorePins } from "@/api/StorePinApi";
-import { DEMO_STORE_ID } from "@/constants/session";
+import { supabase } from "@/lib/supabase";
 import type { Reservation } from "@/types/Reservation";
 import type { StorePin } from "@/types/StorePin";
 import { shopStyles as styles } from "../../styles/shop.styles";
@@ -22,7 +22,7 @@ const actions = [
     title: "オファーを作成",
     meta: "空席数付きのピンを登録",
     icon: "add-circle-outline" as const,
-    route: "/shop/MenuRegister",
+    route: "/shop/pins",
     primary: true,
   },
   {
@@ -65,10 +65,15 @@ export default function ShopDashboardScreen() {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    const { data: {session} } = await supabase.auth.getSession();
+    const storeId = session?.user.id;
+
+    if (!storeId) throw new Error("店舗の取得失敗！");
     try {
       const [pinsData, reservationsData] = await Promise.all([
-        getStorePins(DEMO_STORE_ID),
-        getReservationsByStore(DEMO_STORE_ID),
+        getStorePins(storeId),
+        getReservationsByUser(storeId),
       ]);
       setPins(pinsData);
       setReservations(reservationsData);

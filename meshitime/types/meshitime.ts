@@ -82,6 +82,7 @@ export interface UserProfile {
   phone: string;
   age: number;
   city: string;
+  imagePath: string;
   avatarEmoji: string;
   locationPermission: LocationPermission;
   stats: {

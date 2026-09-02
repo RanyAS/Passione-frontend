@@ -15,6 +15,9 @@
         "googleMaps": {
           "apiKey": "AIzaSyAVTFGQcmcQBSbFb5VVBr1F2AQ8Rqz-cfo"
         }
+      },
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -52,11 +55,20 @@
       "expo-image",
       "expo-status-bar",
       "expo-web-browser",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-maps",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5d0eb0b0-f0d2-48d6-88e8-50c2a0250d70"
+      }
+    },
+    "owner": "soom350"
   }
 }

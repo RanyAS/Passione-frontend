@@ -1,8 +1,7 @@
-import { supabase } from "@/lib/supabase";
-import type { Genre } from "@/types/Genre";
+import api from "./api"
+import { Genre } from "@/types/Genre.js";
 
 export async function getGenre(): Promise<Genre[]> {
-  const { data, error } = await supabase.from("genre").select("*");
-  if (error) throw error;
-  return (data ?? []) as Genre[];
+    const { data } = await api.get<Genre[]>("/api/genres");
+    return data;
 }

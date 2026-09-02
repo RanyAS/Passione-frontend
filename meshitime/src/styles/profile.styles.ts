@@ -208,4 +208,10 @@ versionText: {
   color: "#9CA3AF",
 },
 
+avatarImage: {
+  width: "100%",
+  height: "100%",
+  borderRadius: 999,
+},
+
 });

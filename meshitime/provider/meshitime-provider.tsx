@@ -20,6 +20,9 @@ import type {
   RestaurantCategory,
   UserProfile,
 } from '../types/meshitime';
+import { getUser } from '@/api/userApi';
+import { resolveSessionUserId } from '@/lib/sessionUser';
+import { supabase } from '@/lib/supabase';
 
 interface MeshitimeContextValue {
   restaurants: Restaurant[];
@@ -58,8 +61,14 @@ export function MeshitimeProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      const pins = await getActiveStorePins();
-      setRestaurants(pins.map(storePinToRestaurant));
+      const { data: { session } } = await supabase.auth.getSession();
+      const storeId = session?.user.id;
+
+      if (storeId) {
+         const pins = await getActiveStorePins(storeId);
+         setRestaurants(pins.map(storePinToRestaurant));
+      }
+
     } catch (refreshError) {
       setRestaurants([]);
       setError(
@@ -71,10 +80,6 @@ export function MeshitimeProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    void refreshRestaurants();
-  }, [refreshRestaurants]);
 
   const toggleFavorite = useCallback((restaurantId: string) => {
     setRestaurants((current) =>
@@ -137,6 +142,72 @@ export function MeshitimeProvider({ children }: { children: React.ReactNode }) {
       restaurants.find((restaurant) => restaurant.id === restaurantId),
     [restaurants],
   );
+
+  const loadUserProfile = useCallback(async () => {
+    try {
+      const userId = await resolveSessionUserId();
+      const user = await getUser(userId);
+
+      setProfileState((current) => ({
+        ...current,
+        name: user.username,
+        username: user.username,
+        email: user.email,
+        city: user.address,
+        imagePath: user.image_path ?? "",
+        initials:
+          user.username?.slice(0, 2).toUpperCase() || "G",
+      }));
+    } catch (error) {
+      console.error("Failed to load user profile:", error);
+    }
+  }, []);
+
+useEffect(() => {
+  void refreshRestaurants();
+
+  const loadInitialSession = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session) {
+      const accountType = session.user.user_metadata?.account_type;
+
+      if (accountType === "individual") {
+        await loadUserProfile();
+      } else {
+        setProfileState(emptyUserProfile);
+      }
+    } else {
+      setProfileState(emptyUserProfile);
+    }
+  };
+
+  void loadInitialSession();
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_IN" && session) {
+      const accountType = session.user.user_metadata?.account_type;
+
+      if (accountType === "individual") {
+        void loadUserProfile();
+      } else {
+        setProfileState(emptyUserProfile);
+      }
+    }
+
+    if (event === "SIGNED_OUT") {
+      setProfileState(emptyUserProfile);
+    }
+  });
+
+  return () => {
+    subscription.unsubscribe();
+  };
+}, [refreshRestaurants, loadUserProfile]);
 
   const value = useMemo<MeshitimeContextValue>(
     () => ({
