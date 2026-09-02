@@ -1,8 +1,25 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
-import { defaultAppSettings, defaultUserProfile, restaurantsSeed } from '../src/components/data/meshitime-data';
+import { getActiveStorePins } from '../src/api/StorePinApi';
+import {
+  defaultAppSettings,
+  emptyUserProfile,
+} from '../src/components/data/meshitime-data';
 import { useDebouncedValue } from '../src/hooks/use-debounced-value';
-import type { AppSettings, Restaurant, RestaurantCategory, UserProfile } from '../types/meshitime';
+import { storePinToRestaurant } from '../src/utils/storePinToRestaurant';
+import type {
+  AppSettings,
+  Restaurant,
+  RestaurantCategory,
+  UserProfile,
+} from '../types/meshitime';
 
 interface MeshitimeContextValue {
   restaurants: Restaurant[];
@@ -25,13 +42,9 @@ interface MeshitimeContextValue {
 
 const MeshitimeContext = createContext<MeshitimeContextValue | null>(null);
 
-function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 export function MeshitimeProvider({ children }: { children: React.ReactNode }) {
-  const [restaurants, setRestaurants] = useState<Restaurant[]>(restaurantsSeed);
-  const [profileState, setProfileState] = useState<UserProfile>(defaultUserProfile);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [profileState, setProfileState] = useState<UserProfile>(emptyUserProfile);
   const [appSettings, setAppSettings] = useState<AppSettings>(defaultAppSettings);
   const [searchText, setSearchText] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<RestaurantCategory>('all');
@@ -45,16 +58,23 @@ export function MeshitimeProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      await wait(700);
-      setRestaurants((current) => [...current]);
+      const pins = await getActiveStorePins();
+      setRestaurants(pins.map(storePinToRestaurant));
     } catch (refreshError) {
+      setRestaurants([]);
       setError(
-        refreshError instanceof Error ? refreshError.message : 'データを更新できませんでした。',
+        refreshError instanceof Error
+          ? refreshError.message
+          : 'データを更新できませんでした。',
       );
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    void refreshRestaurants();
+  }, [refreshRestaurants]);
 
   const toggleFavorite = useCallback((restaurantId: string) => {
     setRestaurants((current) =>
@@ -113,7 +133,8 @@ export function MeshitimeProvider({ children }: { children: React.ReactNode }) {
   );
 
   const getRestaurantById = useCallback(
-    (restaurantId: string) => restaurants.find((restaurant) => restaurant.id === restaurantId),
+    (restaurantId: string) =>
+      restaurants.find((restaurant) => restaurant.id === restaurantId),
     [restaurants],
   );
 

@@ -1,6 +1,6 @@
 import {Ionicons} from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { styles } from '../styles/HomeMapScreen';
 import { useLocation } from '../hooks/useLocation';
 import {
@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 
 import { EmptyState } from '../components/empty-state';
-import { homeFilters } from '../components/data/meshitime-data';
+import { DEFAULT_MAP_CENTER, homeFilters } from '../components/data/meshitime-data';
 import { useMeshitime } from '../../provider/meshitime-provider';
 import type { Restaurant, RestaurantCategory } from '../../types/meshitime';
 import { triggerFeedback } from '../../utils/feedback';
@@ -29,11 +29,6 @@ interface HomeMapScreenProps {
   onOpenRestaurant?: (restaurantId: string) => void;
 }
 
-// function getRestaurantImage(restaurant: Restaurant) {
-//     // 画像URLが存在する場合はそれを返す
-//     return 'https://picsum.photos/seed/' + restaurant.id + '/1000/640';
-// }
-
 function getRestaurantImage(restaurantId: string) {
   return `https://picsum.photos/seed/${restaurantId}/1000/640`;
 }
@@ -46,23 +41,28 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
         selectedFilter,
         setSearchText,
         setSelectedFilter,
+        refreshRestaurants,
     } = useMeshitime();
     
     const { region, setRegion, getCurrentLocation } = useLocation({
-      latitude: 35.6762,
-      longitude: 139.6503,
-      latitudeDelta: 0.05,
-      longitudeDelta: 0.05,
+      latitude: DEFAULT_MAP_CENTER.latitude,
+      longitude: DEFAULT_MAP_CENTER.longitude,
+      latitudeDelta: 0.012,
+      longitudeDelta: 0.012,
     });
     
     const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
     const [isLocating, setIsLocating] = useState(false);
     const [showsUserLocation, setShowsUserLocation] = useState(false);
-    
-    const pins = useMemo(
-        () => (filteredRestaurants.length > 0 ? filteredRestaurants : restaurants).slice(0, 10),
-        [filteredRestaurants, restaurants]
-    );
+
+    useEffect(() => {
+      void refreshRestaurants();
+    }, [refreshRestaurants]);
+
+    const pins = useMemo(() => {
+      if (filteredRestaurants.length > 0) return filteredRestaurants;
+      return restaurants;
+    }, [filteredRestaurants, restaurants]);
     
     const handlePinPress = (restaurant: Restaurant) => {
         triggerFeedback('light');
@@ -233,7 +233,10 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
                         const id = selectedRestaurant.id;
                         setSelectedRestaurant(null);
                         onOpenRestaurant?.(id);
-                        router.replace('/ConfirmationScreen');
+                        router.replace({
+                          pathname: '/ConfirmationScreen',
+                          params: { pinId: id, partySize: '1' },
+                        });
                       }}>
                       <Text style={styles.primaryCtaText}>今すぐ予約</Text>
                     </Pressable>

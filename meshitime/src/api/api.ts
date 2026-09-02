@@ -4,10 +4,11 @@ const PORT = "3000";
 const BASE_URL = `http://${IP_ADDRESS}:${PORT}`;
 
 const api = axios.create({
-    baseURL: BASE_URL,
-    headers: {
-        "Content-Type": "application/json",
-    },
+  baseURL: BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  timeout: 15000,
 });
 
 export default api;

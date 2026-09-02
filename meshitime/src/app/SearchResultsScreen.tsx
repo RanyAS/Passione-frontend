@@ -13,6 +13,9 @@ import {
   View,
 } from "react-native";
 import { FILTERS, ROUTE_TO_FILTER_LABEL } from "../constants/category_label";
+import { useMeshitime } from "../../provider/meshitime-provider";
+import type { Restaurant as MeshRestaurant } from "../../types/meshitime";
+
 /**
  * MESHITIME（めしタイム）— 検索結果画面 (RESULTS LIST)
  * カードをタップすると restaurant-detail へ id を渡して遷移する。
@@ -36,76 +39,20 @@ interface Restaurant {
   minutesLeft: number;
 }
 
-export const RESULTS: Restaurant[] = [
-  {
-    id: "1",
-    name: "吉野家 渋谷店",
-    nameEn: "Yoshinoya Shibuya",
-    category: "和食",
-    tags: ["近く", "和食", "人気"],
-    image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400",
-    rating: 4.2,
-    reviewCount: 156,
-    distanceText: "徒歩 4分",
-    dealTitle: "牛丼セット",
-    priceBefore: 890,
-    priceAfter: 620,
-    discountPercent: 30,
-    seatsLeft: 4,
-    minutesLeft: 23,
-  },
-  {
-    id: "2",
-    name: "らーめん 一蘭",
-    nameEn: "Ichiran Ramen",
-    category: "和食",
-    tags: ["近く", "和食", "人気"],
-    image: "https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=400",
-    rating: 4.6,
-    reviewCount: 482,
-    distanceText: "徒歩 7分",
-    dealTitle: "替玉無料キャンペーン",
-    priceBefore: 1180,
-    priceAfter: 980,
-    discountPercent: 17,
-    seatsLeft: 2,
-    minutesLeft: 45,
-  },
-  {
-    id: "3",
-    name: "トラットリア ソーレ",
-    nameEn: "Trattoria Sole",
-    category: "洋食",
-    tags: ["近く", "洋食"],
-    image: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400",
-    rating: 4.4,
-    reviewCount: 98,
-    distanceText: "徒歩 9分",
-    dealTitle: "ランチパスタセット",
-    priceBefore: 1500,
-    priceAfter: 1050,
-    discountPercent: 30,
-    seatsLeft: 6,
-    minutesLeft: 12,
-  },
-  {
-    id: "4",
-    name: "寿司処 海",
-    nameEn: "Sushi Kai",
-    category: "和食",
-    tags: ["和食", "人気"],
-    image: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400",
-    rating: 4.8,
-    reviewCount: 210,
-    distanceText: "徒歩 11分",
-    dealTitle: "握り10貫 おまかせ",
-    priceBefore: 2400,
-    priceAfter: 1680,
-    discountPercent: 30,
-    seatsLeft: 1,
-    minutesLeft: 58,
-  },
-];
+function parseDiscountPercent(label: string): number {
+  const match = label.match(/(\d+)\s*%/);
+  return match ? Number(match[1]) : 0;
+}
+
+function minutesUntil(deadlineLabel: string): number {
+  const match = deadlineLabel.match(/(\d+)/);
+  if (match) return Number(match[1]);
+  const asDate = Date.parse(deadlineLabel);
+  if (!Number.isNaN(asDate)) {
+    return Math.max(0, Math.round((asDate - Date.now()) / 60000));
+  }
+  return 0;
+}
 
 const CountdownChip: React.FC<{ minutes: number }> = ({ minutes }) => {
   const urgent = minutes <= 15;
@@ -194,10 +141,51 @@ const SearchResultsScreen: React.FC = () => {
     setQuery(params.query ?? "");
   }, [params.query]);
 
+  const { restaurants, refreshRestaurants } = useMeshitime();
+
+  useEffect(() => {
+    void refreshRestaurants();
+  }, [refreshRestaurants]);
+
+  const mappedResults = useMemo(() => {
+    return restaurants.map((restaurant: MeshRestaurant): Restaurant => {
+      const discountPercent = parseDiscountPercent(restaurant.deal.discountLabel);
+      return {
+        id: restaurant.id,
+        name: restaurant.name,
+        nameEn: restaurant.romajiName,
+        category: restaurant.categories.includes("japanese")
+          ? "和食"
+          : restaurant.categories.includes("western")
+            ? "洋食"
+            : "すべて",
+        tags: [
+          ...(restaurant.categories.includes("nearby") ? ["近く"] : []),
+          ...(restaurant.categories.includes("japanese") ? ["和食"] : []),
+          ...(restaurant.categories.includes("western") ? ["洋食"] : []),
+          ...(restaurant.categories.includes("popular") ? ["人気"] : []),
+        ],
+        image: `https://picsum.photos/seed/${restaurant.id}/400`,
+        rating: restaurant.rating,
+        reviewCount: restaurant.reviewsCount,
+        distanceText: restaurant.address || "位置情報なし",
+        dealTitle:
+          restaurant.deal.campaign ||
+          restaurant.deal.discountLabel ||
+          "オファー",
+        priceBefore: restaurant.deal.originalPrice,
+        priceAfter: restaurant.deal.dealPrice,
+        discountPercent,
+        seatsLeft: restaurant.deal.availableSeats,
+        minutesLeft: minutesUntil(restaurant.deal.deadlineLabel),
+      };
+    });
+  }, [restaurants]);
+
   const filteredResults = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    return RESULTS.filter((restaurant) => {
+    return mappedResults.filter((restaurant) => {
       const byCategory =
         activeFilter === "すべて" || restaurant.tags.includes(activeFilter);
       const byQuery =
@@ -208,7 +196,7 @@ const SearchResultsScreen: React.FC = () => {
 
       return byCategory && byQuery;
     });
-  }, [activeFilter, query]);
+  }, [activeFilter, mappedResults, query]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

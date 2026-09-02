@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
-import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import { Platform } from "react-native";
-import { registerForPushNotificationsAsync } from "@/services/notifications.service";
+import { requireOptionalNativeModule } from "expo-modules-core";
+import { registerForPushNotificationsAsync } from "../services/notificationsService";
 
 type NotificationData = {
   screen?: string;
@@ -26,9 +26,6 @@ function handleNotificationNavigation(data: NotificationData | undefined) {
   }
 }
 
-/**
- * Enregistre le token push au démarrage et gère le tap sur une notification.
- */
 export function usePushNotifications() {
   const registered = useRef(false);
 
@@ -37,24 +34,36 @@ export function usePushNotifications() {
     if (registered.current) return;
     registered.current = true;
 
-    void registerForPushNotificationsAsync();
+    if (!requireOptionalNativeModule("ExpoPushTokenManager")) {
+      return;
+    }
 
-    const responseSub = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
+    let responseSub: { remove: () => void } | undefined;
+
+    try {
+      const Notifications = require("expo-notifications") as typeof import("expo-notifications");
+
+      void registerForPushNotificationsAsync();
+
+      responseSub = Notifications.addNotificationResponseReceivedListener(
+        (response) => {
+          const data = response.notification.request.content
+            .data as NotificationData;
+          handleNotificationNavigation(data);
+        }
+      );
+
+      void Notifications.getLastNotificationResponseAsync().then((response) => {
+        if (!response) return;
         const data = response.notification.request.content
           .data as NotificationData;
         handleNotificationNavigation(data);
-      }
-    );
-
-    void Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (!response) return;
-      const data = response.notification.request.content.data as NotificationData;
-      handleNotificationNavigation(data);
-    });
+      });
+    } catch {
+    }
 
     return () => {
-      responseSub.remove();
+      responseSub?.remove();
     };
   }, []);
 }
