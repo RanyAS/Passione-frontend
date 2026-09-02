@@ -1,5 +1,5 @@
 import axios from "axios";
-const IP_ADDRESS = "10.109.0.35"; // 自分のIPアドレスに変更
+const IP_ADDRESS = "192.168.11.22"; // 自分のIPアドレスに変更
 const PORT = "3000";
 const BASE_URL = `http://${IP_ADDRESS}:${PORT}`;
 
