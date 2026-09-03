@@ -16,6 +16,7 @@ import { supabase } from "@/lib/supabase";
 import type { Store } from "@/types/Store";
 import { MeshitimeColors } from "@/theme/meshitime-theme";
 import { shopStyles as styles } from "../../styles/shop.styles";
+import { logoutUser } from "@/services/Auth/authService";
 
 function getStoreImageUrl(imagePath: string | null): string | null {
   if (!imagePath) return null;
@@ -88,6 +89,15 @@ export default function ShopProfileScreen() {
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      router.replace("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   const loadStore = useCallback(async () => {
     setLoading(true);
@@ -270,6 +280,13 @@ export default function ShopProfileScreen() {
             >
               <Ionicons name="refresh-outline" size={18} color="#111827" />
               <Text style={styles.secondaryButtonText}>最新情報に更新</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.secondaryButton, { marginTop: 10, flex: 0 }]}
+              onPress={() => void handleLogout()}
+            >
+              <Ionicons name="log-out-outline" size={18} color="#111827" />
+              <Text style={styles.secondaryButtonText}>ログアウト</Text>
             </Pressable>
           </>
         )}

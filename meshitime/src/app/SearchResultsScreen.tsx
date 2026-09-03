@@ -16,9 +16,15 @@ import { FILTERS, ROUTE_TO_FILTER_LABEL, GENRE_ICONS } from "../constants/catego
 import { StorePin } from "@/types/StorePin";
 import { getAllActiveStorePins } from "@/api/StorePinApi";
 import { supabase } from "@/lib/supabase";
+import * as Location from "expo-location";
 
 interface Restaurant {
   id: string;
+  storeId: string;
+  coordinates: {
+    latitude: number,
+    longitude: number,
+  },
   name: string;
   nameEn: string;
   category: string;
@@ -63,6 +69,28 @@ function getStoreImageUrl(imagePath: string | null): string | null {
     .getPublicUrl(imagePath);
 
   return data.publicUrl;
+}
+
+function getDistanceKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+) {
+  const R = 6371;
+
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
 }
 
 const CountdownChip: React.FC<{ minutes: number }> = ({ minutes }) => {
@@ -131,7 +159,7 @@ const RestaurantCard: React.FC<{ item: Restaurant; onPress: () => void }> = ({
         <View style={styles.metaDot} />
         <Text style={styles.metaText}>🪑 空席 {item.seatsLeft}席</Text>
         <View style={styles.metaDot} />
-        <Text style={styles.metaText} numberOfLines={1}>
+        <Text style={[styles.metaText, { flex: 1 }]} numberOfLines={1}>
           📍 {item.address}
         </Text>
       </View>
@@ -145,6 +173,10 @@ const SearchResultsScreen: React.FC = () => {
   const initialFilter = ROUTE_TO_FILTER_LABEL[params.filter ?? ""] ?? "すべて";
   const [query, setQuery] = useState(params.query ?? "");
   const [activeFilter, setActiveFilter] = useState<string>(initialFilter);
+  const [userLocation, setUserLocation] = useState<{
+      latitude: number;
+      longitude: number;
+    } | null>(null);
   const [storePins, setStorePins] = useState<StorePin[]>([]);
   const genreFilters = useMemo(() => {
     const genres = storePins
@@ -188,6 +220,11 @@ const mappedResults = useMemo(() => {
 
     return {
       id: pin.id,
+      storeId: pin.storeId,
+      coordinates: {
+        latitude: pin.store.latitude,
+        longitude: pin.store.longitude,
+      },
 
       name: pin.store.name,
 
@@ -230,7 +267,18 @@ const mappedResults = useMemo(() => {
 
     return mappedResults.filter((restaurant) => {
       const byCategory =
-        activeFilter === "すべて" || restaurant.tags.includes(activeFilter);
+        activeFilter === "すべて" ||
+        (activeFilter === "人気"
+          ? restaurant.rating >= 4.0
+          : activeFilter === "近く"
+            ? userLocation !== null &&
+              getDistanceKm(
+                userLocation.latitude,
+                userLocation.longitude,
+                restaurant.coordinates.latitude,
+                restaurant.coordinates.longitude
+              ) <= 3
+            : restaurant.tags.includes(activeFilter));
       const byQuery =
         normalizedQuery.length === 0 ||
         restaurant.name.toLowerCase().includes(normalizedQuery) ||
@@ -243,6 +291,30 @@ const mappedResults = useMemo(() => {
       return byCategory && byQuery;
     });
   }, [activeFilter, mappedResults, query]);
+
+  useEffect(() => {
+    const getUserLocation = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== "granted") {
+        console.log("Location permission denied");
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      console.log("📍 USER LOCATION:", {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+
+      setUserLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+    };
+
+    void getUserLocation();
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -340,7 +412,7 @@ const mappedResults = useMemo(() => {
             onPress={() =>
               router.push({
                 pathname: "/restaurant-detail",
-                params: { id: item.id, source: "search" },
+                params: { id: item.storeId, source: "search" },
               })
             }
           />

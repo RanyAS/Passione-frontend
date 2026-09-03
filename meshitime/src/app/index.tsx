@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 
 export default function IndexScreen() {
   const [loading, setLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [accountType, setAccountType] = useState<string | null>(null);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -13,7 +13,10 @@ export default function IndexScreen() {
         data: { session },
       } = await supabase.auth.getSession();
 
-      setIsLoggedIn(!!session);
+      setAccountType(
+        session?.user.user_metadata?.account_type ?? null
+      );
+
       setLoading(false);
     };
 
@@ -34,7 +37,11 @@ export default function IndexScreen() {
     );
   }
 
-  if (isLoggedIn) {
+  if (accountType === "store") {
+    return <Redirect href="/shop" />;
+  }
+
+  if (accountType === "individual") {
     return <Redirect href="/HomeMapScreen" />;
   }
 

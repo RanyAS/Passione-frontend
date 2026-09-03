@@ -26,13 +26,10 @@ import { router } from 'expo-router';
 import { getAllActiveStorePins } from '@/api/StorePinApi';
 import { storePinToRestaurant } from '@/utils/storePinToRestaurant';
 import { StorePin } from '@/types/StorePin';
+import { supabase } from '@/lib/supabase';
 
 interface HomeMapScreenProps {
   onOpenRestaurant?: (restaurantId: string) => void;
-}
-
-function getRestaurantImage(restaurantId: string) {
-  return `https://picsum.photos/seed/${restaurantId}/1000/640`;
 }
 
 export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
@@ -234,12 +231,7 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
         <>
           <View style={styles.modalImageWrap}>
             <Image
-              source={{
-                uri: getRestaurantImage(selectedRestaurant.id),
-                cacheKey: selectedRestaurant.id,
-              }}
-              transition={250}
-              cachePolicy="memory-disk"
+              source={{ uri: selectedRestaurant.image ?? undefined }}
               contentFit="cover"
               style={styles.modalImage}
             />

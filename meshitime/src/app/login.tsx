@@ -26,6 +26,7 @@ export default function LoginScreen() {
       setLoading(true);
       const data = await loginUser(email.trim(), password);
       const accountType = data.user?.user_metadata?.account_type;
+      console.log("LOGIN ACCOUNT TYPE:", accountType);
       if (accountType === "store") {
         router.replace("/shop");
       } else {

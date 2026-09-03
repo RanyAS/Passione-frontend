@@ -52,6 +52,7 @@ export interface Restaurant {
   storeId: string;
   name: string;
   romajiName: string;
+  image: string;
   emoji: string;
   rating: number;
   reviewsCount: number;

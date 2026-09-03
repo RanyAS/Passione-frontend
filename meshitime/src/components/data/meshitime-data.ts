@@ -29,10 +29,10 @@ export const onboardingSlides = [
 
 export const homeFilters: { icon: string; label: string; value: RestaurantCategory }[] = [
   { icon: '🍜', label: 'すべて', value: 'all' },
+  { icon: '⭐', label: '人気', value: 'popular' },
   { icon: '📍', label: '近く', value: 'nearby' },
   { icon: '🍣', label: '和食', value: 'japanese' },
   { icon: '🍕', label: '洋食', value: 'western' },
-  { icon: '⭐', label: '人気', value: 'popular' },
 ];
 
 export const emptyUserProfile: UserProfile = {
@@ -44,6 +44,7 @@ export const emptyUserProfile: UserProfile = {
   age: 0,
   city: '',
   avatarEmoji: '🍜',
+  imagePath: "",
   locationPermission: 'denied',
   stats: {
     visits: 0,

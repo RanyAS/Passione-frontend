@@ -95,20 +95,6 @@ export default function MenuRegister() {
           <Text style={styles.pageSubtitle}>
             新しいメニューの情報を入力してください（空席数必須）
           </Text>
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={() => router.push("/shop/pins")}
-            >
-              <Text style={styles.secondaryButtonText}>オファー一覧へ</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={() => router.push("/shop")}
-            >
-              <Text style={styles.secondaryButtonText}>ホームへ</Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
         <MenuHeroPreview imageUri={form.imageUri} />
