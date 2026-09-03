@@ -15,7 +15,7 @@ import {
   failReservation,
   getReservationsByStore,
 } from "@/api/ReservationApi";
-import { DEMO_STORE_ID } from "@/constants/session";
+import { supabase } from "@/lib/supabase";
 import type { Reservation, ReservationStatus } from "@/types/Reservation";
 import { notifyReservationDecision } from "../../services/notificationsService";
 import { shopStyles as styles } from "../../styles/shop.styles";
@@ -80,7 +80,12 @@ export default function ShopReservationsScreen() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getReservationsByStore(DEMO_STORE_ID);
+      const { data: { session } } = await supabase.auth.getSession();
+      const storeId = session?.user.id;
+      console.log("🏪 STORE DASHBOARD ID:", storeId);
+
+      if (!storeId) throw new Error("予約情報の取得失敗！");
+      const data = await getReservationsByStore(storeId);
       setReservations(data);
     } catch {
       setReservations([]);
@@ -216,7 +221,7 @@ export default function ShopReservationsScreen() {
             return (
               <View key={item.id} style={styles.card}>
                 <Text style={styles.cardTitle}>
-                  顧客 {item.userId.slice(0, 12)}
+                  顧客 {item.username}
                 </Text>
                 <Text style={styles.cardMeta}>
                   {offer} · {item.partySize}名 ·{" "}

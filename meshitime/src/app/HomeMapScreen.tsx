@@ -61,14 +61,10 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
 
     const [storePins, setStorePins] = useState<StorePin[]>([]);
     const pinRestaurants = useMemo(() => storePins.map(storePinToRestaurant), [storePins]);
-    console.log("📍 CONVERTED PIN RESTAURANTS:", pinRestaurants);
 
     const refreshStorePins = async () => {
       try {
-        console.log("📍 Loading active store pins...");
         const data = await getAllActiveStorePins();
-        console.log("📍 ACTIVE STORE PINS:", data);
-        console.log("📍 ACTIVE STORE PIN COUNT:", data.length);
         setStorePins(data);
       } catch (error) {
         console.error("Failed to load store pins:", error);
@@ -95,7 +91,6 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
       restaurants,
       pinRestaurants,
     ]);
-    console.log("📍 MAP PINS:", pins);
     
     const handlePinPress = (restaurant: Restaurant) => {
         triggerFeedback('light');
@@ -276,14 +271,14 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
               <Pressable
                 style={styles.secondaryCta}
                 onPress={() => {
-                  const storeId = selectedRestaurant.id;
+                  const pinId = selectedRestaurant.id;
 
                   setSelectedRestaurant(null);
 
                   router.push({
                     pathname: "/restaurant-detail",
                     params: {
-                      storeId,
+                      id: pinId,
                     },
                   });
                 }}

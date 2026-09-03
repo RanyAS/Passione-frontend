@@ -2,13 +2,31 @@ import { Reservation, CreateReservationPayload, UpdateReservationPayload } from 
 import api from "./api";
 
 export async function createReservation(payload: CreateReservationPayload): Promise<Reservation> {
-    const { data } = await api.post<Reservation>("/api/reservations", payload);
-    return data;
+  const { data } = await api.post<{ data: Reservation }>(
+    "/api/reservations",
+    payload
+  );
+
+  return data.data;
+}
+
+
+export async function getReservationsByStore(
+  store_id: string
+): Promise<Reservation[]> {
+  const { data } = await api.get<{ data: Reservation[] }>(
+    `/api/reservations/store/${store_id}`
+  );
+
+  return data.data;
 }
 
 export async function getReservation(reservation_id: string): Promise<Reservation> {
-    const { data } = await api.get<Reservation>(`/api/reservations/${reservation_id}`);
-    return data;
+  const { data } = await api.get<{ data: Reservation }>(
+    `/api/reservations/${reservation_id}`
+  );
+
+  return data.data;
 }
 
 export async function getReservationsByUser(user_id: string): Promise<Reservation[]> {
@@ -27,24 +45,29 @@ export async function updateReservation(
 }
 
 export async function confirmReservation(reservation_id: string): Promise<Reservation> {
-    const { data } = await api.post<Reservation>(`/api/reservations/${reservation_id}/confirm`);
-    return data;
+  const { data } = await api.post<{ data: Reservation }>(
+    `/api/reservations/${reservation_id}/confirm`
+  );
+
+  return data.data;
 }
 
-export async function failReservation(
-    reservation_id: string,
-    note: string | null = null
-): Promise<Reservation> {
-    const { data } = await api.post<Reservation>(`/api/reservations/${reservation_id}/fail`, { note });
-    return data;
+export async function failReservation(reservation_id: string, note: string | null = null): Promise<Reservation> {
+  const { data } = await api.post<{ data: Reservation }>(
+    `/api/reservations/${reservation_id}/fail`,
+    { note }
+  );
+
+  return data.data;
 }
 
-export async function cancelReservation(
-    reservation_id: string,
-    note: string | null = null
-): Promise<Reservation> {
-    const { data } = await api.post<Reservation>(`/api/reservations/${reservation_id}/cancel`, { note });
-    return data;
+export async function cancelReservation(reservation_id: string, note: string | null = null): Promise<Reservation> {
+  const { data } = await api.post<{ data: Reservation }>(
+    `/api/reservations/${reservation_id}/cancel`,
+    { note }
+  );
+
+  return data.data;
 }
 
 export async function deleteReservation(reservation_id: string) {

@@ -19,6 +19,8 @@ export interface Menu {
 
     discounts: Discount | null;
     catchphrase: Catchphrase | null;
+
+    price: number;
 }
 
 

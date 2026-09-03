@@ -27,6 +27,7 @@ export interface ReservationPin {
 export interface Reservation {
   id: string;
   userId: string;
+  username: string;
   pinId: string;
   status: ReservationStatus;
   partySize: number;

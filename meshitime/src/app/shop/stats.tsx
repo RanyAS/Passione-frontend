@@ -10,7 +10,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getReservationsByStore } from "@/api/ReservationApi";
 import { getStorePins } from "@/api/StorePinApi";
-import { DEMO_STORE_ID } from "@/constants/session";
+import { supabase } from "@/lib/supabase";
 import type { Reservation } from "@/types/Reservation";
 import type { StorePin } from "@/types/StorePin";
 import { shopStyles as styles } from "../../styles/shop.styles";
@@ -24,9 +24,13 @@ export default function ShopStatsScreen() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const storeId = session?.user.id;
+      if (!storeId) throw new Error("情報取得の失敗！");
+
       const [pinsData, reservationsData] = await Promise.all([
-        getStorePins(DEMO_STORE_ID),
-        getReservationsByStore(DEMO_STORE_ID),
+        getStorePins(storeId),
+        getReservationsByStore(storeId),
       ]);
       setPins(pinsData);
       setReservations(reservationsData);

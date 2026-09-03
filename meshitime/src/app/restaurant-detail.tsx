@@ -15,13 +15,9 @@ import { getStorePin } from "@/api/StorePinApi";
 import { getReview } from "@/api/reviewApi";
 import type { StorePin } from "@/types/StorePin";
 import type { Review as ApiReview } from "@/types/Review";
-
-interface MenuItem {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-}
+import { supabase } from "@/lib/supabase";
+import { getAllMenu } from "@/api/menuApi";
+import { Menu } from "@/types/Menu";
 
 interface Review {
   id: string;
@@ -42,6 +38,37 @@ function minutesUntil(endsAt: string | null): number {
   if (!endsAt) return 0;
   const diff = new Date(endsAt).getTime() - Date.now();
   return Math.max(0, Math.round(diff / 60000));
+}
+
+function getStoreImageUrl(imagePath: string | null): string | null {
+  if (!imagePath) return null;
+
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+    return imagePath;
+  }
+
+  const { data } = supabase.storage
+    .from("stores-images")
+    .getPublicUrl(imagePath);
+
+  return data.publicUrl;
+}
+
+function getMenuImageUrl(imagePath: string | null): string | null {
+  if (!imagePath) return null;
+
+  if (
+    imagePath.startsWith("http://") ||
+    imagePath.startsWith("https://")
+  ) {
+    return imagePath;
+  }
+
+  const { data } = supabase.storage
+    .from("store-menu")
+    .getPublicUrl(imagePath);
+
+  return data.publicUrl;
 }
 
 function mapReviews(rows: ApiReview[]): Review[] {
@@ -87,13 +114,33 @@ const ContactRow: React.FC<{ icon: string; text: string }> = ({
   </View>
 );
 
-const MenuCard: React.FC<{ item: MenuItem }> = ({ item }) => (
+const MenuCard: React.FC<{ item: Menu }> = ({ item }) => (
   <TouchableOpacity activeOpacity={0.85} style={styles.menuCard}>
-    <Image source={{ uri: item.image }} style={styles.menuImage} />
+    {item.image_path ? (
+      <Image
+        source={{ uri: getMenuImageUrl(item.image_path) ?? undefined }}
+        style={styles.menuImage}
+        resizeMode="cover"
+      />
+    ) : (
+      <View style={styles.menuImagePlaceholder}>
+        <Text style={{ fontSize: 32 }}>🍽️</Text>
+      </View>
+    )}
+
     <Text style={styles.menuName} numberOfLines={1}>
-      {item.name}
+      {item.mname}
     </Text>
-    <Text style={styles.menuPrice}>¥{item.price.toLocaleString()}</Text>
+
+    <Text style={styles.menuPrice}>
+      ¥{item.price.toLocaleString()}
+    </Text>
+
+    {item.description ? (
+      <Text style={styles.menuDescription} numberOfLines={2}>
+        {item.description}
+      </Text>
+    ) : null}
   </TouchableOpacity>
 );
 
@@ -123,6 +170,7 @@ const RestaurantDetailScreen: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [menus, setMenus] = useState<Menu[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -138,6 +186,17 @@ const RestaurantDetailScreen: React.FC = () => {
         const pinData = await getStorePin(id);
         if (cancelled) return;
         setPin(pinData);
+        try {
+          const menuRows = await getAllMenu(pinData.storeId);
+          if (!cancelled) {
+            setMenus(menuRows);
+          }
+        } catch (error) {
+          console.error("❌ Failed to load menus:", error);
+          if (!cancelled) {
+            setMenus([]);
+          }
+        }
         try {
           const reviewRows = await getReview(pinData.storeId);
           if (!cancelled) setReviews(mapReviews(reviewRows));
@@ -181,10 +240,10 @@ const RestaurantDetailScreen: React.FC = () => {
           ? new Date(pin.endsAt).toLocaleString("ja-JP")
           : "時間未設定"),
       campaign: pin.rule ?? pin.description ?? "",
-      menu: [] as MenuItem[],
-      imagePath: pin.store?.imagePath,
+      menu: menus,
+      imagePath: getStoreImageUrl(pin.store?.imagePath ?? null),
     };
-  }, [pin, reviews.length]);
+  }, [pin, reviews.length, menus]);
 
   const handleBackPress = () => {
     if (params.source === "favorites") {
@@ -367,7 +426,7 @@ const RestaurantDetailScreen: React.FC = () => {
           onPress={() =>
             router.push({
               pathname: "/ConfirmationScreen",
-              params: { pinId: pin.id, partySize: "1" },
+              params: { storeId: pin.storeId, pinId: pin.id, partySize: "1" },
             })
           }
           style={styles.ctaPrimary}
@@ -553,6 +612,22 @@ const styles = StyleSheet.create({
   },
   menuName: { fontSize: 13, fontWeight: "600", color: BLACK, marginBottom: 2 },
   menuPrice: { fontSize: 13, fontWeight: "700", color: RED },
+  menuImagePlaceholder: {
+    width: "100%",
+    height: 120,
+    borderRadius: 12,
+    backgroundColor: "#F2F2F7",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+
+  menuDescription: {
+    fontSize: 12,
+    color: "#8E8E93",
+    lineHeight: 17,
+    marginTop: 4,
+  },
 
   // ----- Review -----
   reviewCard: {

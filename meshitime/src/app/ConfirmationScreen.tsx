@@ -18,6 +18,7 @@ import { createReservation } from "@/api/ReservationApi";
 import { getStorePin } from "@/api/StorePinApi";
 import { resolveSessionUserId } from "@/lib/sessionUser";
 import type { StorePin } from "@/types/StorePin";
+import axios from "axios";
 
 type ConfirmationStatus = "pending" | "success" | "error";
 
@@ -185,13 +186,30 @@ export function ConfirmationScreen({
 
       try {
         const userId = await resolveSessionUserId();
+
+
+  console.log("🔎 RESERVATION PAYLOAD:", {
+
+    userId,
+
+    pinId,
+
+    partySize,
+
+  });
         await createReservation({
           userId,
           pinId,
           partySize,
         });
         if (!cancelled) setStatus("success");
-      } catch {
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          console.error("❌ RESERVATION ERROR:", error.response?.data);
+        } else {
+          console.error("❌ RESERVATION ERROR:", error);
+        }
+
         if (!cancelled) setStatus("error");
       }
     };
