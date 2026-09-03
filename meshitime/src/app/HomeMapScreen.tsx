@@ -24,6 +24,10 @@ import { NativeMap } from '../components/native-map';
 import { formatYen } from '../../utils/screen-utils';
 import { router } from 'expo-router';
 
+import { getAllActiveStorePins } from '@/api/StorePinApi';
+import { storePinToRestaurant } from '@/utils/storePinToRestaurant';
+import { StorePin } from '@/types/StorePin';
+
 
 interface HomeMapScreenProps {
   onOpenRestaurant?: (restaurantId: string) => void;
@@ -55,14 +59,43 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
     const [isLocating, setIsLocating] = useState(false);
     const [showsUserLocation, setShowsUserLocation] = useState(false);
 
+    const [storePins, setStorePins] = useState<StorePin[]>([]);
+    const pinRestaurants = useMemo(() => storePins.map(storePinToRestaurant), [storePins]);
+    console.log("📍 CONVERTED PIN RESTAURANTS:", pinRestaurants);
+
+    const refreshStorePins = async () => {
+      try {
+        console.log("📍 Loading active store pins...");
+        const data = await getAllActiveStorePins();
+        console.log("📍 ACTIVE STORE PINS:", data);
+        console.log("📍 ACTIVE STORE PIN COUNT:", data.length);
+        setStorePins(data);
+      } catch (error) {
+        console.error("Failed to load store pins:", error);
+      }
+    };
+
     useEffect(() => {
       void refreshRestaurants();
+      void refreshStorePins();
     }, [refreshRestaurants]);
 
     const pins = useMemo(() => {
-      if (filteredRestaurants.length > 0) return filteredRestaurants;
-      return restaurants;
-    }, [filteredRestaurants, restaurants]);
+      const normalRestaurants =
+        filteredRestaurants.length > 0
+          ? filteredRestaurants
+          : restaurants;
+
+      return [
+        ...normalRestaurants,
+        ...pinRestaurants,
+      ];
+    }, [
+      filteredRestaurants,
+      restaurants,
+      pinRestaurants,
+    ]);
+    console.log("📍 MAP PINS:", pins);
     
     const handlePinPress = (restaurant: Restaurant) => {
         triggerFeedback('light');
@@ -176,7 +209,7 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
             
       <View style={styles.bottomPeek}>
         <View style={styles.peekHandle} />
-        <Text style={styles.peekTitle}>{filteredRestaurants.length}件のお得情報</Text>
+        <Text style={styles.peekTitle}>{pinRestaurants.length}件のお得情報</Text>
         <Text style={styles.peekSubtitle}>あなたの近くで利用可能</Text>
         <View style={styles.bottomActions}>
           <Pressable style={styles.bottomActionButton} onPress={() => router.push('/favorites')}>
@@ -190,68 +223,112 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
       
       
       <Modal
-        visible={Boolean(selectedRestaurant)}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSelectedRestaurant(null)}>
-        <View style={styles.modalContainer}>
-          <Pressable style={styles.modalBackdrop} onPress={() => setSelectedRestaurant(null)} />
-          <View style={styles.modalCard}>
-            <View style={styles.peekHandle} />
-            {selectedRestaurant ? (
-              <>
-                <View style={styles.modalImageWrap}>
-                  <Image
-                    source={{ uri: getRestaurantImage(selectedRestaurant.id), cacheKey: selectedRestaurant.id }}
-                    transition={250}
-                    cachePolicy="memory-disk"
-                    contentFit="cover"
-                    style={styles.modalImage}
-                  />
-                  <View style={styles.discountBadge}>
-                    <Text style={styles.discountText}>{selectedRestaurant.deal.discountLabel}</Text>
-                  </View>
-                </View>
-                <View style={styles.modalBody}>
-                  <Text style={styles.modalTitle}>{selectedRestaurant.name}</Text>
-                  <Text style={styles.modalMeta}>
-                    空席: {selectedRestaurant.deal.availableSeats}席 / 締切: {selectedRestaurant.deal.deadlineLabel}
-                  </Text>
-                  <Text style={styles.modalPrice}>
-                    <Text style={styles.modalOriginalPrice}>
-                      {formatYen(selectedRestaurant.deal.originalPrice)}
-                    </Text>{' '}
-                    {formatYen(selectedRestaurant.deal.dealPrice)}
-                  </Text>
-                  <View style={styles.modalButtons}>
-                    <Pressable style={styles.secondaryCta}>
-                      <Text style={styles.secondaryCtaText}>ルート案内</Text>
-                    </Pressable>
-                    <Pressable
-                      style={styles.primaryCta}
-                      onPress={() => {
-                        const id = selectedRestaurant.id;
-                        setSelectedRestaurant(null);
-                        onOpenRestaurant?.(id);
-                        router.replace({
-                          pathname: '/ConfirmationScreen',
-                          params: { pinId: id, partySize: '1' },
-                        });
-                      }}>
-                      <Text style={styles.primaryCtaText}>今すぐ予約</Text>
-                    </Pressable>
-                  </View>
-                </View>
-              </>
-            ) : (
-                <EmptyState
-                emoji="🍜"
-                title="レストランが見つかりません"
-                description="他の条件で検索してみてください" />
-            )}
+  visible={Boolean(selectedRestaurant)}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setSelectedRestaurant(null)}
+>
+  <View style={styles.modalContainer}>
+    <Pressable
+      style={styles.modalBackdrop}
+      onPress={() => setSelectedRestaurant(null)}
+    />
+
+    <View style={styles.modalCard}>
+      <View style={styles.peekHandle} />
+
+      {selectedRestaurant ? (
+        <>
+          <View style={styles.modalImageWrap}>
+            <Image
+              source={{
+                uri: getRestaurantImage(selectedRestaurant.id),
+                cacheKey: selectedRestaurant.id,
+              }}
+              transition={250}
+              cachePolicy="memory-disk"
+              contentFit="cover"
+              style={styles.modalImage}
+            />
+
+            <View style={styles.discountBadge}>
+              <Text style={styles.discountText}>
+                {selectedRestaurant.deal.discountLabel}
+              </Text>
             </View>
-        </View>
-    </Modal> 
+          </View>
+
+          <View style={styles.modalBody}>
+            <Text style={styles.modalTitle}>
+              {selectedRestaurant.name}
+            </Text>
+
+            <Text style={styles.modalMeta}>
+              空席: {selectedRestaurant.deal.availableSeats}席
+            </Text>
+
+            <Text style={{fontSize: 14, color: '#6B7280', marginTop: 6, marginBottom: 12}}>
+              {selectedRestaurant.deal.campaign}
+            </Text>
+
+            <View style={styles.modalButtons}>
+              {/* 詳細を見る */}
+              <Pressable
+                style={styles.secondaryCta}
+                onPress={() => {
+                  const storeId = selectedRestaurant.id;
+
+                  setSelectedRestaurant(null);
+
+                  router.push({
+                    pathname: "/restaurant-detail",
+                    params: {
+                      storeId,
+                    },
+                  });
+                }}
+              >
+                <Text style={styles.secondaryCtaText}>
+                  詳細を見る
+                </Text>
+              </Pressable>
+
+              {/* 今すぐ予約 */}
+              <Pressable
+                style={styles.primaryCta}
+                onPress={() => {
+                  const storeId = selectedRestaurant.id;
+                  const pinId = selectedRestaurant.id;
+
+                  setSelectedRestaurant(null);
+
+                  router.push({
+                    pathname: "/ConfirmationScreen",
+                    params: {
+                      storeId,
+                      pinId,
+                      partySize: "1",
+                    },
+                  });
+                }}
+              >
+                <Text style={styles.primaryCtaText}>
+                  今すぐ予約
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </>
+      ) : (
+        <EmptyState
+          emoji="🍜"
+          title="レストランが見つかりません"
+          description="他の条件で検索してみてください"
+        />
+      )}
+    </View>
+  </View>
+</Modal>
     <Pressable
       style={[styles.backToMyLocationButton, isLocating && styles.backToMyLocationButtonDisabled]}
       onPress={handleBackToMyLocation}

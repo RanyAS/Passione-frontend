@@ -20,7 +20,7 @@ export function storePinToRestaurant(pin: StorePin): Restaurant {
       originalPrice: 0,
       dealPrice: 0,
       availableSeats: pin.emptySeat,
-      deadlineLabel: pin.time ?? pin.endsAt ?? "",
+      deadlineLabel: pin.endsAt ?? "",
       campaign: pin.description ?? "",
     },
     menuItems: [],

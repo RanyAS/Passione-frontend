@@ -5,6 +5,15 @@ import {
 } from "@/types/StorePin";
 import api from "./api";
 
+export async function getAllActiveStorePins(): Promise<StorePin[]> {
+  const { data } = await api.get<{
+    success: boolean;
+    data: StorePin[];
+  }>("/api/storepin/active");
+
+  return data.data;
+}
+
 export async function getStorePins(store_id: string): Promise<StorePin[]> {
   const { data } = await api.get<{ success: boolean; data: StorePin[] }>(
     `/api/storepin/store/${store_id}`
@@ -23,9 +32,9 @@ export async function getActiveStorePins(
   return data.data;
 }
 
-export async function getStorePin(store_id: string): Promise<StorePin> {
+export async function getStorePin(pin_id: string): Promise<StorePin> {
   const { data } = await api.get<{ success: boolean; data: StorePin }>(
-    `/api/storepin/${store_id}`
+    `/api/storepin/${pin_id}`
   );
 
   return data.data;
