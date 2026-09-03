@@ -5,6 +5,7 @@ import type { Restaurant } from "../../types/meshitime";
 export function storePinToRestaurant(pin: StorePin): Restaurant {
   return {
     id: pin.id,
+    storeId: pin.storeId,
     name: pin.store?.name ?? "店舗",
     romajiName: pin.store?.name ?? "Store",
     emoji: "🍜",

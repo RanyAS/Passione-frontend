@@ -3,9 +3,32 @@ import api from "./api";
 
 type CreateFav = Omit<Favorite, "id" | "created_at">;
 
-export async function getAllFavStore(user_id:string): Promise<FavWithStore[]> {
-    const { data } = await api.get<FavWithStore[]>(`/api/fav/${user_id}`);
+export async function getAllFavStore(user_id: string): Promise<FavWithStore[]> {
+  try {
+    const { data } = await api.get<FavWithStore[]>(
+      `/api/fav/${user_id}`
+    );
+
     return data;
+  } catch (error: any) {
+    console.log("❌ GET FAVORITES ERROR");
+    console.log("status:", error.response?.status);
+    console.log("data:", error.response?.data);
+    console.log("url:", error.config?.url);
+
+    throw error;
+  }
+}
+
+export async function checkFavStore(
+    user_id: string,
+    store_id: string
+): Promise<boolean> {
+    const { data } = await api.get<{ isFavorite: boolean }>(
+        `/api/fav/${user_id}/${store_id}/check`
+    );
+
+    return data.isFavorite;
 }
 
 export async function addFavStore(fav_data:CreateFav): Promise<Favorite> {

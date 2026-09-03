@@ -8,6 +8,10 @@ export interface StorePinStore {
   site: string | null;
   imagePath: string | null;
   genreId: string | null;
+  genre: {
+    id: string;
+    name: string;
+  } | null;
   latitude: number;
   longitude: number;
   createdAt: string;

@@ -6,3 +6,9 @@ export interface Review {
     comment: string;
     created_at: string;
 }
+
+export interface ApiReview extends Review {
+    users: {
+        username: string;
+    } | null;
+}

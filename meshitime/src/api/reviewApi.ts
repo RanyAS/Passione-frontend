@@ -1,10 +1,10 @@
-import { Review } from "@/types/Review";
+import { ApiReview, Review } from "@/types/Review";
 import api from "./api";
 
 type InsertReview = Omit<Review, "id" | "created_at">
 
-export async function getReview(store_id:string): Promise<Review[]> {
-    const { data } = await api.get<Review[]>(`/api/review/${store_id}`);
+export async function getReview(store_id:string): Promise<ApiReview[]> {
+    const { data } = await api.get<ApiReview[]>(`/api/review/${store_id}`);
     return data;
 }
 

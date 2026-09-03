@@ -2,10 +2,10 @@ export type Category = "すべて" | "近く" | "和食" | "洋食" | "人気";
 
 export const FILTERS: { label: Category; icon: string }[] = [
   { label: "すべて", icon: "🍜" },
+  { label: "人気", icon: "⭐" },
   { label: "近く", icon: "📍" },
   { label: "和食", icon: "🍣" },
   { label: "洋食", icon: "🍕" },
-  { label: "人気", icon: "⭐" },
 ];
 
 /** HomeMap `filter` query param → SearchResults chip label */
@@ -20,4 +20,13 @@ export const ROUTE_TO_FILTER_LABEL: Record<string, Category> = {
   和食: "和食",
   洋食: "洋食",
   人気: "人気",
+};
+
+export const GENRE_ICONS: Record<string, string> = {
+  焼肉: "🥩",
+  寿司: "🍣",
+  イタリアン: "🍝",
+  韓国料理: "🍲",
+  インド料理: "🍛",
+  カフェ: "☕",
 };

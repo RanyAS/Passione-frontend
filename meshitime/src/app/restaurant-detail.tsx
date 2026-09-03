@@ -11,13 +11,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { getStorePin } from "@/api/StorePinApi";
+import { getActiveStorePins } from "@/api/StorePinApi";
 import { getReview } from "@/api/reviewApi";
 import type { StorePin } from "@/types/StorePin";
-import type { Review as ApiReview } from "@/types/Review";
+import type { ApiReview } from "@/types/Review";
 import { supabase } from "@/lib/supabase";
 import { getAllMenu } from "@/api/menuApi";
 import { Menu } from "@/types/Menu";
+import { checkFavStore, addFavStore, deleteFavStore } from "@/api/favoriteApi";
+import { getStoreById } from "@/api/storeApi";
+import { Store } from "@/types/Store";
 
 interface Review {
   id: string;
@@ -74,8 +77,8 @@ function getMenuImageUrl(imagePath: string | null): string | null {
 function mapReviews(rows: ApiReview[]): Review[] {
   return rows.map((row) => ({
     id: row.id,
-    userName: row.user_id.slice(0, 8),
-    avatarInitial: "U",
+    userName: row.users?.username ?? "ユーザー",
+    avatarInitial: row.users?.username?.charAt(0).toUpperCase() ?? "U",
     rating: row.star,
     date: new Date(row.created_at).toLocaleDateString("ja-JP"),
     comment: row.comment,
@@ -171,6 +174,39 @@ const RestaurantDetailScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [menus, setMenus] = useState<Menu[]>([]);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [store, setStore] = useState<Store | null>(null);
+
+  useEffect(() => {
+  const loadFavoriteStatus = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const userId = session?.user.id;
+
+      if (!userId || !pin?.storeId) {
+        setIsFavorite(false);
+        return;
+      }
+
+      const favorite = await checkFavStore(
+        userId,
+        pin.storeId
+      );
+
+      setIsFavorite(favorite);
+    } catch (error) {
+      console.error("❌ Failed to check favorite status:", error);
+      setIsFavorite(false);
+    }
+  };
+
+  if (pin) {
+    void loadFavoriteStatus();
+  }
+}, [pin]);
 
   useEffect(() => {
     let cancelled = false;
@@ -183,11 +219,17 @@ const RestaurantDetailScreen: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const pinData = await getStorePin(id);
+        const storeData = await getStoreById(id);
         if (cancelled) return;
-        setPin(pinData);
+        setStore(storeData);
+
+        const pinRows = await getActiveStorePins(storeData.id);
+        if (!cancelled) {
+          setPin(pinRows[0] ?? null);
+        }
+        
         try {
-          const menuRows = await getAllMenu(pinData.storeId);
+          const menuRows = await getAllMenu(storeData.id);
           if (!cancelled) {
             setMenus(menuRows);
           }
@@ -198,7 +240,7 @@ const RestaurantDetailScreen: React.FC = () => {
           }
         }
         try {
-          const reviewRows = await getReview(pinData.storeId);
+          const reviewRows = await getReview(storeData.id);
           if (!cancelled) setReviews(mapReviews(reviewRows));
         } catch {
           if (!cancelled) setReviews([]);
@@ -217,33 +259,41 @@ const RestaurantDetailScreen: React.FC = () => {
     };
   }, [id]);
 
-  const view = useMemo(() => {
-    if (!pin) return null;
-    const discountPercent = parseDiscountPercent(pin.rule);
-    return {
-      name: pin.store?.name ?? "店舗",
-      nameEn: pin.store?.name ?? "",
-      emoji: "🍜",
-      heroColors: ["#FFE3B3", "#FFB877"] as [string, string],
-      rating: pin.store?.star ?? 0,
-      reviewCount: reviews.length,
-      address: pin.store?.address ?? "未設定",
-      hours: pin.store?.openTime ?? "未設定",
-      phone: pin.store?.tel ?? "未設定",
-      dealTitle: pin.description ?? "オファー",
-      discountPercent,
-      seatsLeft: pin.emptySeat,
-      minutesLeft: minutesUntil(pin.endsAt),
-      deadline:
-        pin.time ??
-        (pin.endsAt
-          ? new Date(pin.endsAt).toLocaleString("ja-JP")
-          : "時間未設定"),
-      campaign: pin.rule ?? pin.description ?? "",
-      menu: menus,
-      imagePath: getStoreImageUrl(pin.store?.imagePath ?? null),
-    };
-  }, [pin, reviews.length, menus]);
+const view = useMemo(() => {
+  if (!store) return null;
+
+  const discountPercent = parseDiscountPercent(pin?.rule ?? null);
+
+  return {
+    name: store.sname ?? "店舗",
+    emoji: "🍜",
+    heroColors: ["#FFE3B3", "#FFB877"] as [string, string],
+    rating: store.star ?? 0,
+    reviewCount: reviews.length,
+    address: store.address ?? "未設定",
+    hours: store.open_time ?? "未設定",
+    phone: store.tel ?? "未設定",
+
+    dealTitle: pin?.description ?? "現在、お得情報はありません",
+    discountPercent,
+
+    seatsLeft: pin?.emptySeat ?? 0,
+
+    minutesLeft: minutesUntil(pin?.endsAt ?? null),
+
+    deadline:
+      pin?.time ??
+      (pin?.endsAt
+        ? new Date(pin.endsAt).toLocaleString("ja-JP")
+        : "時間未設定"),
+
+    campaign: pin?.rule ?? pin?.description ?? "",
+
+    menu: menus,
+
+    imagePath: getStoreImageUrl(store.image_path ?? null),
+  };
+}, [store, pin, reviews.length, menus]);
 
   const handleBackPress = () => {
     if (params.source === "favorites") {
@@ -324,8 +374,36 @@ const RestaurantDetailScreen: React.FC = () => {
           </TouchableOpacity>
 
           <View style={styles.fabRightGroup}>
-            <TouchableOpacity style={styles.fab} activeOpacity={0.85}>
-              <Text style={[styles.fabIcon, { color: RED }]}>♡</Text>
+            <TouchableOpacity
+              style={styles.fab}
+              activeOpacity={0.85}
+              onPress={async () => {
+                try {
+                  const {
+                    data: { session },
+                  } = await supabase.auth.getSession();
+                  const userId = session?.user.id;
+                  if (!userId || !pin?.storeId) {
+                    return;
+                  }
+                  if (isFavorite) {
+                    await deleteFavStore(userId, pin.storeId);
+                    setIsFavorite(false);
+                  } else {
+                    await addFavStore({
+                      user_id: userId,
+                      store_id: pin.storeId,
+                    });
+                    setIsFavorite(true);
+                  }
+                } catch (error) {
+                  console.error("Failed to update favorite:", error);
+                }
+              }}
+            >
+              <Text style={[styles.fabIcon, { color: RED }]}>
+                {isFavorite ? "♥" : "♡"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -333,7 +411,6 @@ const RestaurantDetailScreen: React.FC = () => {
         <View style={styles.sheet}>
           <View style={styles.nameCard}>
             <Text style={styles.title}>{view.name}</Text>
-            <Text style={styles.subtitle}>{view.nameEn}</Text>
 
             <View style={styles.ratingRow}>
               <Stars rating={view.rating} size={15} />

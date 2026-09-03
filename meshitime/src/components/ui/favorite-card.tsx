@@ -1,13 +1,12 @@
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, Image } from "react-native";
 import { favoriteStyles as styles } from "../../styles/favorites.styles";
+import { supabase } from "@/lib/supabase";
 
 type FavoriteCardProps = {
   name: string;
-  image: string;
+  image: string | null;
   rating: number;
-  discount: string;
-  price: number;
-  isHotDeal: boolean;
+  genre: string;
   bgColor: string;
   onPress: () => void;
   onPressHeart: () => void;
@@ -17,33 +16,32 @@ export default function FavoriteCard({
   name,
   image,
   rating,
-  discount,
-  price,
-  isHotDeal,
+  genre,
   bgColor,
   onPress,
   onPressHeart,
 }: FavoriteCardProps) {
   return (
     <Pressable style={styles.card} onPress={onPress}>
+
       <View style={[styles.imageArea, { backgroundColor: bgColor }]}>
-        {isHotDeal && (
-          <View style={styles.hotBadge}>
-            <Text style={styles.hotBadgeText}>● 今すぐお得!</Text>
-          </View>
+        {image ? (
+          <Image
+            source={{ uri: image }}
+            style={{
+              width: "100%",
+              height: "100%",
+            }}
+            resizeMode="cover"
+          />
+        ) : (
+          <Text style={styles.foodIcon}>🍽️</Text>
         )}
-
-        <Text style={styles.foodIcon}>{image}</Text>
-
-        <View style={styles.discountBadge}>
-          <Text style={styles.discountText}>{discount}</Text>
-        </View>
       </View>
-
       <View style={styles.cardBody}>
         <Text style={styles.restaurantName}>{name}</Text>
         <Text style={styles.rating}>★ {rating}</Text>
-        <Text style={styles.price}>¥{price.toLocaleString()}</Text>
+        <Text style={styles.price}>{genre}</Text>
 
         <Pressable
           style={styles.heartButton}

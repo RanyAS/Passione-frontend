@@ -49,6 +49,7 @@ export interface HistoryItem {
 
 export interface Restaurant {
   id: string;
+  storeId: string;
   name: string;
   romajiName: string;
   emoji: string;

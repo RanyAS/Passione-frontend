@@ -8,5 +8,10 @@ export interface Favorite {
 }
 
 export interface FavWithStore extends Favorite {
-    store: Store;
+    stores: Store & {
+        genre: {
+            id: string;
+            gname: string;
+        } | null;
+    };
 }

@@ -1,16 +1,61 @@
 import { router } from "expo-router";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useMeshitime } from "../../provider/meshitime-provider";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { getAllFavStore } from "@/api/favoriteApi";
+import type { FavWithStore } from "@/types/Favorite";
 import FavoriteCard from "../components/ui/favorite-card";
 import { favoriteStyles as styles } from "../styles/favorites.styles";
 
 const BG_COLORS = ["#FFDDB0", "#CFE5FF", "#FFD1D8", "#FFF0A8", "#F8CFE4"];
 
+function getStoreImageUrl(imagePath: string | null): string | null {
+  if (!imagePath) return null;
+
+  if (
+    imagePath.startsWith("http://") ||
+    imagePath.startsWith("https://")
+  ) {
+    return imagePath;
+  }
+
+  const { data } = supabase.storage
+    .from("stores-images")
+    .getPublicUrl(imagePath);
+
+  return data.publicUrl;
+}
+
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
-  const { favorites, toggleFavorite } = useMeshitime();
+  const [favorites, setFavorites] = useState<FavWithStore[]>([]);
 
+  useEffect(() => {
+  const loadFavorites = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const userId = session?.user.id;
+
+      if (!userId) {
+        setFavorites([]);
+        return;
+      }
+
+      const data = await getAllFavStore(userId);
+
+      setFavorites(data);
+    } catch (error) {
+      console.error("❌ Failed to load favorites:", error);
+      setFavorites([]);
+    }
+  };
+
+  void loadFavorites();
+}, []);
   return (
     <View style={styles.safeArea}>
       <ScrollView
@@ -41,25 +86,30 @@ export default function FavoritesScreen() {
           </View>
         ) : (
           <View style={styles.cardGrid}>
-            {favorites.map((restaurant, index) => (
+            {favorites.map((favorite, index) => {
+            return (
               <FavoriteCard
-                key={restaurant.id}
-                name={restaurant.name}
-                image={restaurant.emoji}
-                rating={restaurant.rating}
-                discount={restaurant.deal.discountLabel}
-                price={restaurant.deal.dealPrice || restaurant.deal.availableSeats}
-                isHotDeal={restaurant.pinPosition.active}
+                key={favorite.id}
+                name={favorite.stores.sname}
+                image={getStoreImageUrl(favorite.stores.image_path)}
+                rating={favorite.stores.star}
+                genre={favorite.stores.genre?.gname ?? "その他"}
                 bgColor={BG_COLORS[index % BG_COLORS.length]}
                 onPress={() =>
                   router.push({
                     pathname: "/restaurant-detail",
-                    params: { id: restaurant.id, source: "favorites" },
+                    params: {
+                      id: favorite.store_id,
+                      source: "favorites",
+                    },
                   })
                 }
-                onPressHeart={() => toggleFavorite(restaurant.id)}
+                onPressHeart={() => {
+                  // sementara kosong
+                }}
               />
-            ))}
+            );
+          })}
           </View>
         )}
       </ScrollView>

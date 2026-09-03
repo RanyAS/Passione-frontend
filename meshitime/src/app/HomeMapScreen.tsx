@@ -21,13 +21,11 @@ import type { Restaurant, RestaurantCategory } from '../../types/meshitime';
 import { triggerFeedback } from '../../utils/feedback';
 import { NativeMap } from '../components/native-map';
 
-import { formatYen } from '../../utils/screen-utils';
 import { router } from 'expo-router';
 
 import { getAllActiveStorePins } from '@/api/StorePinApi';
 import { storePinToRestaurant } from '@/utils/storePinToRestaurant';
 import { StorePin } from '@/types/StorePin';
-
 
 interface HomeMapScreenProps {
   onOpenRestaurant?: (restaurantId: string) => void;
@@ -271,14 +269,14 @@ export function HomeMapScreen({ onOpenRestaurant }: HomeMapScreenProps) {
               <Pressable
                 style={styles.secondaryCta}
                 onPress={() => {
-                  const pinId = selectedRestaurant.id;
+                  const storeId = selectedRestaurant.storeId;
 
                   setSelectedRestaurant(null);
 
                   router.push({
                     pathname: "/restaurant-detail",
                     params: {
-                      id: pinId,
+                      id: storeId,
                     },
                   });
                 }}

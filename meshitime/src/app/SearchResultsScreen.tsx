@@ -12,14 +12,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { FILTERS, ROUTE_TO_FILTER_LABEL } from "../constants/category_label";
-import { useMeshitime } from "../../provider/meshitime-provider";
-import type { Restaurant as MeshRestaurant } from "../../types/meshitime";
-
-/**
- * MESHITIME（めしタイム）— 検索結果画面 (RESULTS LIST)
- * カードをタップすると restaurant-detail へ id を渡して遷移する。
- */
+import { FILTERS, ROUTE_TO_FILTER_LABEL, GENRE_ICONS } from "../constants/category_label";
+import { StorePin } from "@/types/StorePin";
+import { getAllActiveStorePins } from "@/api/StorePinApi";
+import { supabase } from "@/lib/supabase";
 
 interface Restaurant {
   id: string;
@@ -27,13 +23,11 @@ interface Restaurant {
   nameEn: string;
   category: string;
   tags: string[];
-  image: string;
+  image: string | null;
   rating: number;
   reviewCount: number;
-  distanceText: string;
+  address: string;
   dealTitle: string;
-  priceBefore: number;
-  priceAfter: number;
   discountPercent: number;
   seatsLeft: number;
   minutesLeft: number;
@@ -52,6 +46,23 @@ function minutesUntil(deadlineLabel: string): number {
     return Math.max(0, Math.round((asDate - Date.now()) / 60000));
   }
   return 0;
+}
+
+function getStoreImageUrl(imagePath: string | null): string | null {
+  if (!imagePath) return null;
+
+  if (
+    imagePath.startsWith("http://") ||
+    imagePath.startsWith("https://")
+  ) {
+    return imagePath;
+  }
+
+  const { data } = supabase.storage
+    .from("stores-images")
+    .getPublicUrl(imagePath);
+
+  return data.publicUrl;
 }
 
 const CountdownChip: React.FC<{ minutes: number }> = ({ minutes }) => {
@@ -80,7 +91,16 @@ const RestaurantCard: React.FC<{ item: Restaurant; onPress: () => void }> = ({
 }) => (
   <TouchableOpacity activeOpacity={0.85} style={styles.card} onPress={onPress}>
     <View style={styles.cardImageWrap}>
-      <Image source={{ uri: item.image }} style={styles.cardImage} />
+      {item.image ? (
+        <Image
+          source={{ uri: item.image }}
+          style={styles.cardImage}
+        />
+      ) : (
+        <View style={styles.cardImagePlaceholder}>
+          <Text style={{ fontSize: 32 }}>🍽️</Text>
+        </View>
+      )}
       <DiscountBadge percent={item.discountPercent} />
     </View>
 
@@ -101,15 +121,6 @@ const RestaurantCard: React.FC<{ item: Restaurant; onPress: () => void }> = ({
           🍱 {item.dealTitle}
         </Text>
       </View>
-      <View style={styles.priceRow}>
-        <Text style={styles.priceBefore}>
-          ¥{item.priceBefore.toLocaleString()}
-        </Text>
-        <Text style={styles.priceArrow}>→</Text>
-        <Text style={styles.priceAfter}>
-          ¥{item.priceAfter.toLocaleString()}
-        </Text>
-      </View>
 
       <View style={styles.metaRow}>
         <View style={styles.metaItem}>
@@ -120,7 +131,9 @@ const RestaurantCard: React.FC<{ item: Restaurant; onPress: () => void }> = ({
         <View style={styles.metaDot} />
         <Text style={styles.metaText}>🪑 空席 {item.seatsLeft}席</Text>
         <View style={styles.metaDot} />
-        <Text style={styles.metaText}>{item.distanceText}</Text>
+        <Text style={styles.metaText} numberOfLines={1}>
+          📍 {item.address}
+        </Text>
       </View>
     </View>
   </TouchableOpacity>
@@ -132,6 +145,34 @@ const SearchResultsScreen: React.FC = () => {
   const initialFilter = ROUTE_TO_FILTER_LABEL[params.filter ?? ""] ?? "すべて";
   const [query, setQuery] = useState(params.query ?? "");
   const [activeFilter, setActiveFilter] = useState<string>(initialFilter);
+  const [storePins, setStorePins] = useState<StorePin[]>([]);
+  const genreFilters = useMemo(() => {
+    const genres = storePins
+      .map((pin) => pin.store?.genre?.name)
+      .filter((name): name is string => Boolean(name));
+
+    return [...new Set(genres)].filter(
+      (genre) => genre !== "和食" && genre !== "洋食"
+    );
+  }, [storePins]);
+
+  useEffect(() => {
+  const loadPins = async () => {
+    try {
+      const data = await getAllActiveStorePins();
+      console.log(
+  "🔎 SEARCH STORE PINS:",
+  JSON.stringify(data, null, 2)
+);
+      setStorePins(data);
+    } catch (error) {
+      console.error("❌ Failed to load search results:", error);
+      setStorePins([]);
+    }
+  };
+
+  void loadPins();
+}, []);
 
   useEffect(() => {
     setActiveFilter(ROUTE_TO_FILTER_LABEL[params.filter ?? ""] ?? "すべて");
@@ -141,46 +182,48 @@ const SearchResultsScreen: React.FC = () => {
     setQuery(params.query ?? "");
   }, [params.query]);
 
-  const { restaurants, refreshRestaurants } = useMeshitime();
+const mappedResults = useMemo(() => {
+  return storePins.map((pin): Restaurant => {
+    const genreName = pin.store.genre?.name ?? "その他";
 
-  useEffect(() => {
-    void refreshRestaurants();
-  }, [refreshRestaurants]);
+    return {
+      id: pin.id,
 
-  const mappedResults = useMemo(() => {
-    return restaurants.map((restaurant: MeshRestaurant): Restaurant => {
-      const discountPercent = parseDiscountPercent(restaurant.deal.discountLabel);
-      return {
-        id: restaurant.id,
-        name: restaurant.name,
-        nameEn: restaurant.romajiName,
-        category: restaurant.categories.includes("japanese")
-          ? "和食"
-          : restaurant.categories.includes("western")
-            ? "洋食"
-            : "すべて",
-        tags: [
-          ...(restaurant.categories.includes("nearby") ? ["近く"] : []),
-          ...(restaurant.categories.includes("japanese") ? ["和食"] : []),
-          ...(restaurant.categories.includes("western") ? ["洋食"] : []),
-          ...(restaurant.categories.includes("popular") ? ["人気"] : []),
-        ],
-        image: `https://picsum.photos/seed/${restaurant.id}/400`,
-        rating: restaurant.rating,
-        reviewCount: restaurant.reviewsCount,
-        distanceText: restaurant.address || "位置情報なし",
-        dealTitle:
-          restaurant.deal.campaign ||
-          restaurant.deal.discountLabel ||
-          "オファー",
-        priceBefore: restaurant.deal.originalPrice,
-        priceAfter: restaurant.deal.dealPrice,
-        discountPercent,
-        seatsLeft: restaurant.deal.availableSeats,
-        minutesLeft: minutesUntil(restaurant.deal.deadlineLabel),
-      };
-    });
-  }, [restaurants]);
+      name: pin.store.name,
+
+      nameEn: pin.store.name,
+
+      category: genreName,
+
+      tags: [genreName],
+
+      image: getStoreImageUrl(pin.store.imagePath),
+
+      rating: pin.store.star ?? 0,
+
+      // Review count belum tersedia dari StorePin API.
+      // Nanti bisa kita sambungkan ke review API.
+      reviewCount: 0,
+
+      address: pin.store.address,
+
+      dealTitle:
+        pin.description ||
+        pin.rule ||
+        "お得な情報",
+
+      discountPercent: parseDiscountPercent(
+        pin.rule ?? ""
+      ),
+
+      seatsLeft: pin.emptySeat,
+
+      minutesLeft: minutesUntil(
+        pin.endsAt ?? ""
+      ),
+    };
+  });
+}, [storePins]);
 
   const filteredResults = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -192,7 +235,10 @@ const SearchResultsScreen: React.FC = () => {
         normalizedQuery.length === 0 ||
         restaurant.name.toLowerCase().includes(normalizedQuery) ||
         restaurant.nameEn.toLowerCase().includes(normalizedQuery) ||
-        restaurant.dealTitle.toLowerCase().includes(normalizedQuery);
+        restaurant.dealTitle.toLowerCase().includes(normalizedQuery) ||
+        restaurant.tags.some((tag) =>
+          tag.toLowerCase().includes(normalizedQuery)
+        );
 
       return byCategory && byQuery;
     });
@@ -260,6 +306,24 @@ const SearchResultsScreen: React.FC = () => {
               </TouchableOpacity>
             );
           })}
+          {genreFilters.map((genre) => {
+          const active = activeFilter === genre;
+          return (
+            <TouchableOpacity
+              key={genre}
+              activeOpacity={0.8}
+              onPress={() => setActiveFilter(genre)}
+              style={[styles.chip, active && styles.chipActive]}
+            >
+              <Text style={styles.chipIcon}>{GENRE_ICONS[genre] ?? "🍴"}</Text>
+              <Text
+                style={[styles.chipText, active && styles.chipTextActive]}
+              >
+                {genre}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
         </ScrollView>
       </View>
 
@@ -268,12 +332,6 @@ const SearchResultsScreen: React.FC = () => {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.sortRow}>
-          <Text style={styles.sortLabel}>締切が近い順</Text>
-          <TouchableOpacity>
-            <Text style={styles.sortAction}>並び替え ⌄</Text>
-          </TouchableOpacity>
-        </View>
 
         {filteredResults.map((item) => (
           <RestaurantCard
@@ -458,4 +516,11 @@ const styles = StyleSheet.create({
     color: "#C7C7CC",
     marginTop: 8,
   },
+  cardImagePlaceholder: {
+  width: "100%",
+  height: 160,
+  justifyContent: "center",
+  alignItems: "center",
+  backgroundColor: "#F2F2F7",
+},
 });
