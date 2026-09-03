@@ -8,6 +8,16 @@ export async function getReview(store_id:string): Promise<ApiReview[]> {
     return data;
 }
 
+export async function getReviewsByUser(
+  user_id: string
+): Promise<Review[]> {
+  const { data } = await api.get<Review[]>(
+    `/api/review/user/${user_id}`
+  );
+
+  return data;
+}
+
 export async function insertReview(review_data:InsertReview): Promise<Review> {
     const { data } = await api.post<Review>("/api/review", review_data);
     return data;

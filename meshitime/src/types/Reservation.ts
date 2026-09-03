@@ -1,6 +1,7 @@
 export type ReservationStatus =
   | "pending"
   | "confirmed"
+  | "completed"
   | "failed"
   | "cancelled";
 

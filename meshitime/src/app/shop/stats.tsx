@@ -94,21 +94,6 @@ export default function ShopStatsScreen() {
           </Text>
         </View>
 
-        <View style={styles.actionsRow}>
-          <Pressable
-            style={styles.secondaryButton}
-            onPress={() => router.push("/shop")}
-          >
-            <Text style={styles.secondaryButtonText}>ホームへ</Text>
-          </Pressable>
-          <Pressable
-            style={styles.primaryButton}
-            onPress={() => router.push("/shop/reservations")}
-          >
-            <Text style={styles.primaryButtonText}>予約へ</Text>
-          </Pressable>
-        </View>
-
         {loading ? (
           <ActivityIndicator style={{ marginTop: 40 }} />
         ) : (

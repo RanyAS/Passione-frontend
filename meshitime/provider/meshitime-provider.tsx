@@ -20,14 +20,17 @@ import type {
   RestaurantCategory,
   UserProfile,
 } from '../types/meshitime';
+import type { FavWithStore } from '@/types/Favorite';
 import { getUser } from '@/api/userApi';
 import { resolveSessionUserId } from '@/lib/sessionUser';
 import { supabase } from '@/lib/supabase';
+import { getAllFavStore } from '@/api/favoriteApi';
 
 interface MeshitimeContextValue {
   restaurants: Restaurant[];
   filteredRestaurants: Restaurant[];
-  favorites: Restaurant[];
+  favorites: FavWithStore[];
+  loadFavorites: () => Promise<void>;
   userProfile: UserProfile;
   appSettings: AppSettings;
   searchText: string;
@@ -47,6 +50,7 @@ const MeshitimeContext = createContext<MeshitimeContextValue | null>(null);
 
 export function MeshitimeProvider({ children }: { children: React.ReactNode }) {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [favorites, setFavorites] = useState<FavWithStore[]>([]);
   const [profileState, setProfileState] = useState<UserProfile>(emptyUserProfile);
   const [appSettings, setAppSettings] = useState<AppSettings>(defaultAppSettings);
   const [searchText, setSearchText] = useState('');
@@ -106,11 +110,6 @@ export function MeshitimeProvider({ children }: { children: React.ReactNode }) {
     });
   }, [debouncedSearchText, restaurants, selectedFilter]);
 
-  const favorites = useMemo(
-    () => restaurants.filter((restaurant) => restaurant.isFavorite),
-    [restaurants],
-  );
-
   const updateUserProfile = useCallback((updates: Partial<UserProfile>) => {
     setProfileState((current) => ({
       ...current,
@@ -163,6 +162,18 @@ export function MeshitimeProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+const loadFavorites = useCallback(async () => {
+  try {
+    const userId = await resolveSessionUserId();
+    const favoriteRows = await getAllFavStore(userId);
+
+    setFavorites(favoriteRows);
+  } catch (error) {
+    console.error("Failed to load favorites:", error);
+    setFavorites([]);
+  }
+}, []);
+
 useEffect(() => {
   void refreshRestaurants();
 
@@ -176,6 +187,7 @@ useEffect(() => {
 
       if (accountType === "individual") {
         await loadUserProfile();
+        await loadFavorites();
       } else {
         setProfileState(emptyUserProfile);
       }
@@ -194,6 +206,7 @@ useEffect(() => {
 
       if (accountType === "individual") {
         void loadUserProfile();
+        loadFavorites();
       } else {
         setProfileState(emptyUserProfile);
       }
@@ -207,13 +220,14 @@ useEffect(() => {
   return () => {
     subscription.unsubscribe();
   };
-}, [refreshRestaurants, loadUserProfile]);
+}, [refreshRestaurants, loadUserProfile, loadFavorites]);
 
   const value = useMemo<MeshitimeContextValue>(
     () => ({
       restaurants,
       filteredRestaurants,
       favorites,
+      loadFavorites,
       userProfile,
       appSettings,
       searchText,
@@ -232,6 +246,7 @@ useEffect(() => {
       appSettings,
       error,
       favorites,
+      loadFavorites,
       filteredRestaurants,
       getRestaurantById,
       isLoading,

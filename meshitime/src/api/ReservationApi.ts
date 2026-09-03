@@ -52,6 +52,16 @@ export async function confirmReservation(reservation_id: string): Promise<Reserv
   return data.data;
 }
 
+export async function completeReservation(
+  reservation_id: string
+): Promise<Reservation> {
+  const { data } = await api.post<{ data: Reservation }>(
+    `/api/reservations/${reservation_id}/complete`
+  );
+
+  return data.data;
+}
+
 export async function failReservation(reservation_id: string, note: string | null = null): Promise<Reservation> {
   const { data } = await api.post<{ data: Reservation }>(
     `/api/reservations/${reservation_id}/fail`,

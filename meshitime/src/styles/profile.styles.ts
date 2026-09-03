@@ -31,6 +31,11 @@ export const profileStyles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: "700",
   },
+  historyImagePhoto: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 12,
+  },
   backIcon: {
     color: "#FFFFFF",
     fontSize: 22,

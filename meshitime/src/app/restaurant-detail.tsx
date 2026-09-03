@@ -198,7 +198,7 @@ const RestaurantDetailScreen: React.FC = () => {
 
       setIsFavorite(favorite);
     } catch (error) {
-      console.error("❌ Failed to check favorite status:", error);
+      console.error("Failed to check favorite status:", error);
       setIsFavorite(false);
     }
   };
@@ -222,7 +222,6 @@ const RestaurantDetailScreen: React.FC = () => {
         const storeData = await getStoreById(id);
         if (cancelled) return;
         setStore(storeData);
-
         const pinRows = await getActiveStorePins(storeData.id);
         if (!cancelled) {
           setPin(pinRows[0] ?? null);
@@ -234,7 +233,7 @@ const RestaurantDetailScreen: React.FC = () => {
             setMenus(menuRows);
           }
         } catch (error) {
-          console.error("❌ Failed to load menus:", error);
+          console.error("Failed to load menus:", error);
           if (!cancelled) {
             setMenus([]);
           }
@@ -245,7 +244,7 @@ const RestaurantDetailScreen: React.FC = () => {
         } catch {
           if (!cancelled) setReviews([]);
         }
-      } catch {
+      } catch (error) {
         if (!cancelled) {
           setPin(null);
           setError("店舗情報の取得に失敗しました");
@@ -316,7 +315,7 @@ const view = useMemo(() => {
     );
   }
 
-  if (error || !view || !pin) {
+  if (error || !view ) {
     return (
       <View
         style={[
@@ -503,7 +502,7 @@ const view = useMemo(() => {
           onPress={() =>
             router.push({
               pathname: "/ConfirmationScreen",
-              params: { storeId: pin.storeId, pinId: pin.id, partySize: "1" },
+              params: { storeId: pin?.storeId, pinId: pin?.id, partySize: "1" },
             })
           }
           style={styles.ctaPrimary}

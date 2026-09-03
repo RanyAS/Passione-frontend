@@ -25,10 +25,7 @@ export default function ShopLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "ホーム",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="grid-outline" size={size} color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen

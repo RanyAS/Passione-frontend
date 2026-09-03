@@ -1,39 +1,59 @@
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, Image } from "react-native";
 import { profileStyles as styles } from "../../styles/profile.styles";
 
 type HistoryItemProps = {
   name: string;
   date: string;
-  discount: string;
-  price: number;
   image: string;
   bgColor: string;
+  reviewed: boolean;
   onPress: () => void;
+  onReviewPress: () => void;
 };
 
 export default function HistoryItem({
   name,
   date,
-  discount,
-  price,
   image,
   bgColor,
+  reviewed,
   onPress,
+  onReviewPress,
 }: HistoryItemProps) {
   return (
     <Pressable style={styles.historyCard} onPress={onPress}>
-      <View style={[styles.historyImage, { backgroundColor: bgColor }]}>
-        <Text style={styles.historyIcon}>{image}</Text>
-      </View>
+    <View style={[styles.historyImage, { backgroundColor: bgColor }]}>
+      {image ? (
+        <Image
+          source={{ uri: image }}
+          style={styles.historyImagePhoto}
+          resizeMode="cover"
+        />
+      ) : (
+        <Text style={styles.historyIcon}>🍜</Text>
+      )}
+    </View>
 
       <View style={styles.historyInfo}>
         <Text style={styles.historyName}>{name}</Text>
         <Text style={styles.historyDate}>{date}</Text>
-
-        <View style={styles.historyDealRow}>
-          <Text style={styles.historyDiscount}>{discount}</Text>
-          <Text style={styles.historyPrice}>¥{price.toLocaleString()}</Text>
-        </View>
+        <Pressable
+            onPress={onReviewPress}
+            disabled={reviewed}
+            style={{
+              marginTop: 6,
+            }}
+          >
+            <Text
+              style={{
+                color: reviewed ? "#8E8E93" : "#2563EB",
+                fontSize: 13,
+                fontWeight: "600",
+              }}
+            >
+              {reviewed ? "✓ レビュー済み" : "レビューを書く"}
+            </Text>
+          </Pressable>
       </View>
 
       <Text style={styles.arrow}>›</Text>

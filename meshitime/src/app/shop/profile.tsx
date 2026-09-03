@@ -17,6 +17,23 @@ import type { Store } from "@/types/Store";
 import { MeshitimeColors } from "@/theme/meshitime-theme";
 import { shopStyles as styles } from "../../styles/shop.styles";
 
+function getStoreImageUrl(imagePath: string | null): string | null {
+  if (!imagePath) return null;
+
+  if (
+    imagePath.startsWith("http://") ||
+    imagePath.startsWith("https://")
+  ) {
+    return imagePath;
+  }
+
+  const { data } = supabase.storage
+    .from("stores-images")
+    .getPublicUrl(imagePath);
+
+  return data.publicUrl;
+}
+
 function InfoRow({
   icon,
   label,
@@ -137,9 +154,9 @@ export default function ShopProfileScreen() {
         ) : (
           <>
             <View style={[styles.card, { padding: 0, overflow: "hidden" }]}>
-              {store.image_path ? (
+              {getStoreImageUrl(store.image_path) ? (
                 <Image
-                  source={{ uri: store.image_path }}
+                  source={{ uri: getStoreImageUrl(store.image_path)! }}
                   style={{ width: "100%", height: 160 }}
                   contentFit="cover"
                 />
@@ -240,16 +257,10 @@ export default function ShopProfileScreen() {
 
             <View style={[styles.actionsRow, { marginTop: 10 }]}>
               <Pressable
-                style={styles.secondaryButton}
-                onPress={() => router.push("./shop")}
-              >
-                <Text style={styles.secondaryButtonText}>ホームへ</Text>
-              </Pressable>
-              <Pressable
                 style={styles.primaryButton}
                 onPress={() => router.push("/shop/MenuRegister")}
               >
-                <Text style={styles.primaryButtonText}>新規作成</Text>
+                <Text style={styles.primaryButtonText}>新しいメニューを登録</Text>
               </Pressable>
             </View>
 

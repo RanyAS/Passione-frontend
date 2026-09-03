@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   cancelReservation,
   confirmReservation,
+  completeReservation,
   failReservation,
   getReservationsByStore,
 } from "@/api/ReservationApi";
@@ -24,6 +25,7 @@ const filters: { key: ReservationStatus | "all"; label: string }[] = [
   { key: "all", label: "すべて" },
   { key: "pending", label: "確認待ち" },
   { key: "confirmed", label: "確定" },
+  { key: "completed", label: "完了" },
   { key: "failed", label: "失敗" },
   { key: "cancelled", label: "キャンセル" },
 ];
@@ -39,6 +41,11 @@ const STATUS_UI: Record<
   },
   confirmed: {
     label: "確定",
+    box: styles.badgeSuccess,
+    text: styles.badgeSuccessText,
+  },
+  completed: {
+    label: "完了",
     box: styles.badgeSuccess,
     text: styles.badgeSuccessText,
   },
@@ -141,6 +148,29 @@ export default function ShopReservationsScreen() {
     }
   };
 
+  const complete = async (item: Reservation) => {
+    setLoadingId(item.id);
+
+    try {
+      const updated = await completeReservation(item.id);
+
+      setReservations((prev) =>
+        prev.map((row) => (row.id === item.id ? updated : row))
+      );
+
+      Alert.alert("完了", "予約を完了しました");
+    } catch (error: any){
+        console.error("❌ COMPLETE RESERVATION ERROR:", error);
+
+  console.error("status:", error.response?.status);
+
+  console.error("data:", error.response?.data);
+      Alert.alert("エラー", "予約の完了に失敗しました");
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
   return (
     <View style={[styles.safeArea, { paddingTop: insets.top + 8 }]}>
       <ScrollView
@@ -151,21 +181,6 @@ export default function ShopReservationsScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>予約管理</Text>
           <Text style={styles.subtitle}>確認・承認・拒否をここで対応</Text>
-        </View>
-
-        <View style={styles.actionsRow}>
-          <Pressable
-            style={styles.secondaryButton}
-            onPress={() => router.push("/shop")}
-          >
-            <Text style={styles.secondaryButtonText}>ホームへ</Text>
-          </Pressable>
-          <Pressable
-            style={styles.primaryButton}
-            onPress={() => router.push("/shop/pins")}
-          >
-            <Text style={styles.primaryButtonText}>オファーへ</Text>
-          </Pressable>
         </View>
 
         <ScrollView
@@ -221,7 +236,7 @@ export default function ShopReservationsScreen() {
             return (
               <View key={item.id} style={styles.card}>
                 <Text style={styles.cardTitle}>
-                  顧客 {item.username}
+                  {item.username}
                 </Text>
                 <Text style={styles.cardMeta}>
                   {offer} · {item.partySize}名 ·{" "}
@@ -258,6 +273,17 @@ export default function ShopReservationsScreen() {
                       onPress={() => void decide(item, "confirmed")}
                     >
                       <Text style={styles.primaryButtonText}>承認</Text>
+                    </Pressable>
+                  </View>
+                ) : null}
+                {item.status === "confirmed" ? (
+                  <View style={styles.actionsRow}>
+                    <Pressable
+                      style={styles.primaryButton}
+                      disabled={busy}
+                      onPress={() => void complete(item)}
+                    >
+                      <Text style={styles.primaryButtonText}>完了</Text>
                     </Pressable>
                   </View>
                 ) : null}
