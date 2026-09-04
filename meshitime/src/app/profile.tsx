@@ -305,13 +305,6 @@ export default function ProfileScreen() {
               />
             </>
           )}
-
-          <SettingMenuItem
-            icon="↪"
-            label="店舗ダッシュボード"
-            iconColor="#EF4444"
-            onPress={() => router.push("./shop")}
-          />
         </View>
 
         <Text style={styles.versionText}>MESHITIME v1.0.0</Text>
