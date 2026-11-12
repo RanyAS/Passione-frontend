@@ -1,0 +1,1317 @@
+{
+  "title": "MESHITIME API仕様書",
+  "version": "1.1.0",
+  "updatedAt": "2026-07-31",
+  "description": "Expo フロントエンドが利用する API 契約。主に Supabase（PostgreSQL）直結。menu のみ Express レガシー。",
+  "base": {
+    "supabaseUrl": "https://yarcsujzlvzbolgkolpd.supabase.co",
+    "clientFile": "src/lib/supabase.ts",
+    "expressBaseUrlEnv": "EXPO_PUBLIC_API_URL",
+    "expressBaseUrlDefault": "http://localhost:3000",
+    "contentType": "application/json"
+  },
+  "conventions": {
+    "idType": "uuid string",
+    "datetime": "ISO-8601 string",
+    "dbNaming": "snake_case",
+    "appNamingPinReservation": "camelCase",
+    "errors": "throw PostgrestError or Error; HTTP wrapper なし（直接クライアント）",
+    "successDelete": "null"
+  },
+  "schemas": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "username": { "type": "string" },
+        "email": { "type": "string" },
+        "password": { "type": "string" },
+        "address": { "type": "string" },
+        "image_path": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "username", "email", "password", "address", "image_path", "created_at"]
+    },
+    "CreateUserPayload": {
+      "type": "object",
+      "properties": {
+        "username": { "type": "string", "required": true },
+        "email": { "type": "string", "required": true },
+        "password": { "type": "string", "required": true },
+        "address": { "type": "string", "required": false, "default": "" },
+        "image_path": { "type": "string", "required": false, "default": "" },
+        "id": { "type": "string", "format": "uuid", "required": false, "description": "Auth UUID と揃える場合" }
+      }
+    },
+    "UpdateUserPayload": {
+      "type": "object",
+      "description": "Partial。更新したいフィールドのみ。",
+      "properties": {
+        "username": { "type": "string" },
+        "email": { "type": "string" },
+        "password": { "type": "string" },
+        "address": { "type": "string" },
+        "image_path": { "type": "string" }
+      }
+    },
+    "Store": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "sname": { "type": "string" },
+        "email": { "type": "string" },
+        "password": { "type": "string" },
+        "address": { "type": "string" },
+        "tel": { "type": "string" },
+        "open_time": { "type": "string" },
+        "star": { "type": "number" },
+        "site": { "type": "string" },
+        "image_path": { "type": "string" },
+        "genre_id": { "type": ["string", "null"], "format": "uuid" },
+        "latitude": { "type": ["number", "null"] },
+        "longitude": { "type": ["number", "null"] },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "sname", "email", "password", "address", "created_at"]
+    },
+    "CreateStorePayload": {
+      "type": "object",
+      "properties": {
+        "sname": { "type": "string", "required": true },
+        "email": { "type": "string", "required": true },
+        "password": { "type": "string", "required": true },
+        "address": { "type": "string", "required": true },
+        "tel": { "type": "string", "required": false, "default": "" },
+        "open_time": { "type": "string", "required": false, "default": "" },
+        "site": { "type": "string", "required": false, "default": "" },
+        "image_path": { "type": "string", "required": false, "default": "" },
+        "genre_id": { "type": ["string", "null"], "required": false },
+        "latitude": { "type": ["number", "null"], "required": false },
+        "longitude": { "type": ["number", "null"], "required": false },
+        "star": { "type": ["number", "null"], "required": false, "default": 0 },
+        "id": { "type": "string", "format": "uuid", "required": false }
+      }
+    },
+    "UpdateStorePayload": {
+      "type": "object",
+      "description": "Partial。更新したいフィールドのみ。",
+      "properties": {
+        "sname": { "type": "string" },
+        "email": { "type": "string" },
+        "password": { "type": "string" },
+        "address": { "type": "string" },
+        "tel": { "type": "string" },
+        "open_time": { "type": "string" },
+        "site": { "type": "string" },
+        "image_path": { "type": "string" },
+        "genre_id": { "type": ["string", "null"] },
+        "latitude": { "type": ["number", "null"] },
+        "longitude": { "type": ["number", "null"] },
+        "star": { "type": "number" }
+      }
+    },
+    "StorePin": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "storeId": { "type": "string", "format": "uuid" },
+        "time": { "type": ["string", "null"] },
+        "emptySeat": { "type": "number" },
+        "rule": { "type": ["string", "null"] },
+        "description": { "type": ["string", "null"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "startsAt": { "type": ["string", "null"], "format": "date-time" },
+        "endsAt": { "type": ["string", "null"], "format": "date-time" },
+        "isActive": { "type": "boolean" },
+        "store": { "$ref": "#/schemas/StorePinStore" },
+        "coordinates": {
+          "type": "object",
+          "properties": {
+            "latitude": { "type": "number" },
+            "longitude": { "type": "number" }
+          }
+        }
+      }
+    },
+    "StorePinStore": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "tel": { "type": ["string", "null"] },
+        "openTime": { "type": ["string", "null"] },
+        "star": { "type": ["number", "null"] },
+        "site": { "type": ["string", "null"] },
+        "imagePath": { "type": ["string", "null"] },
+        "genreId": { "type": ["string", "null"] },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "createdAt": { "type": "string" }
+      }
+    },
+    "CreateStorePinPayload": {
+      "type": "object",
+      "properties": {
+        "storeId": { "type": "string", "required": true },
+        "emptySeat": { "type": "number", "required": true },
+        "time": { "type": ["string", "null"], "required": false },
+        "rule": { "type": ["string", "null"], "required": false },
+        "description": { "type": ["string", "null"], "required": false },
+        "startsAt": { "type": ["string", "null"], "required": false },
+        "endsAt": { "type": ["string", "null"], "required": false },
+        "isActive": { "type": "boolean", "required": false, "default": true }
+      }
+    },
+    "UpdateStorePinPayload": {
+      "type": "object",
+      "description": "CreateStorePinPayload の Partial"
+    },
+    "Reservation": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "pinId": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "confirmed", "failed", "cancelled"]
+        },
+        "partySize": { "type": "number" },
+        "reservedAt": { "type": ["string", "null"] },
+        "note": { "type": ["string", "null"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "pin": { "type": ["object", "null"] }
+      }
+    },
+    "CreateReservationPayload": {
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "required": true },
+        "pinId": { "type": "string", "required": true },
+        "partySize": { "type": "number", "required": false, "default": 1 },
+        "reservedAt": { "type": ["string", "null"], "required": false },
+        "note": { "type": ["string", "null"], "required": false }
+      }
+    },
+    "UpdateReservationPayload": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["pending", "confirmed", "failed", "cancelled"]
+        },
+        "partySize": { "type": "number" },
+        "reservedAt": { "type": ["string", "null"] },
+        "note": { "type": ["string", "null"] }
+      }
+    },
+    "Genre": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "gname": { "type": "string" },
+        "image_path": { "type": "string" },
+        "created_at": { "type": "string" }
+      }
+    },
+    "Review": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "store_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "star": { "type": "number" },
+        "comment": { "type": "string" },
+        "created_at": { "type": "string" }
+      }
+    },
+    "Favorite": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "store_id": { "type": "string" },
+        "created_at": { "type": "string" }
+      }
+    },
+    "FavWithStore": {
+      "allOf": [
+        { "$ref": "#/schemas/Favorite" },
+        {
+          "type": "object",
+          "properties": {
+            "store": { "$ref": "#/schemas/Store" }
+          }
+        }
+      ]
+    },
+    "History": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "store_id": { "type": "string" },
+        "created_at": { "type": "string" }
+      }
+    },
+    "HistoryWithStore": {
+      "allOf": [
+        { "$ref": "#/schemas/History" },
+        {
+          "type": "object",
+          "properties": {
+            "store": { "$ref": "#/schemas/Store" }
+          }
+        }
+      ]
+    },
+    "Menu": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "mname": { "type": "string" },
+        "store_id": { "type": "string" },
+        "allergen": { "type": "string" },
+        "ingredients": { "type": "string" },
+        "description": { "type": "string" },
+        "image_path": { "type": "string" },
+        "created_at": { "type": "string" },
+        "discount_id": { "type": ["string", "null"] },
+        "catch_id": { "type": ["string", "null"] }
+      }
+    },
+    "CreateMenu": {
+      "type": "object",
+      "properties": {
+        "mname": { "type": "string", "required": true },
+        "store_id": { "type": "string", "required": true },
+        "allergen": { "type": "string", "required": true },
+        "ingredients": { "type": "string", "required": true },
+        "description": { "type": "string", "required": true },
+        "image_path": { "type": "string", "required": true },
+        "discount_id": { "type": ["string", "null"], "required": true },
+        "catch_id": { "type": ["string", "null"], "required": true }
+      }
+    },
+    "ApiError": {
+      "type": "object",
+      "properties": {
+        "message": { "type": "string" },
+        "code": { "type": "string", "description": "PostgREST / Postgres code" },
+        "details": { "type": ["string", "null"] },
+        "hint": { "type": ["string", "null"] }
+      }
+    }
+  },
+  "resources": [
+    {
+      "name": "User",
+      "table": "users",
+      "clientFile": "src/api/userApi.ts",
+      "transport": "supabase",
+      "endpoints": [
+        {
+          "operationId": "getUser",
+          "method": "GET",
+          "summary": "ユーザー1件取得",
+          "function": "getUser",
+          "input": {
+            "path": {
+              "user_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true,
+                "description": "users.id"
+              }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": {
+              "status": 200,
+              "schema": "User",
+              "example": {
+                "id": "11111111-1111-1111-1111-111111111111",
+                "username": "taro",
+                "email": "taro@example.com",
+                "password": "***",
+                "address": "Osaka",
+                "image_path": "",
+                "created_at": "2026-07-01T00:00:00.000Z"
+              }
+            },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "createUser",
+          "method": "POST",
+          "summary": "ユーザー作成",
+          "function": "createUser",
+          "input": {
+            "path": {},
+            "query": {},
+            "body": {
+              "schema": "CreateUserPayload",
+              "required": true,
+              "example": {
+                "username": "taro",
+                "email": "taro@example.com",
+                "password": "secret",
+                "address": "Osaka",
+                "image_path": ""
+              }
+            }
+          },
+          "output": {
+            "success": {
+              "status": 201,
+              "schema": "User",
+              "description": "作成されたユーザー（id / created_at 付き）"
+            },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "updateUser",
+          "method": "PATCH",
+          "summary": "ユーザー更新",
+          "function": "updateUser",
+          "input": {
+            "path": {
+              "user_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "query": {},
+            "body": {
+              "schema": "UpdateUserPayload",
+              "required": true,
+              "example": {
+                "username": "taro_updated",
+                "address": "Tokyo"
+              }
+            }
+          },
+          "output": {
+            "success": {
+              "status": 200,
+              "schema": "User",
+              "description": "更新後のユーザー"
+            },
+            "error": {
+              "schema": "ApiError",
+              "notes": ["body が空の場合 Error: No fields to update"]
+            }
+          }
+        },
+        {
+          "operationId": "deleteUser",
+          "method": "DELETE",
+          "summary": "ユーザー削除",
+          "function": "deleteUser",
+          "input": {
+            "path": {
+              "user_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": {
+              "status": 204,
+              "schema": null,
+              "value": null,
+              "description": "削除成功時 null を返す"
+            },
+            "error": { "schema": "ApiError" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Store",
+      "table": "stores",
+      "clientFile": "src/api/storeApi.ts",
+      "transport": "supabase",
+      "endpoints": [
+        {
+          "operationId": "getStoreById",
+          "method": "GET",
+          "summary": "店舗1件取得",
+          "function": "getStoreById",
+          "input": {
+            "path": {
+              "store_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": { "status": 200, "schema": "Store" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "getStores",
+          "method": "GET",
+          "summary": "店舗一覧",
+          "function": "getStores",
+          "input": {
+            "path": {},
+            "query": {
+              "genre_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": false,
+                "description": "指定時はそのジャンルのみ"
+              }
+            },
+            "body": null
+          },
+          "output": {
+            "success": {
+              "status": 200,
+              "schema": "Store[]",
+              "description": "created_at 降順"
+            },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "createStore",
+          "method": "POST",
+          "summary": "店舗作成",
+          "function": "createStore",
+          "input": {
+            "path": {},
+            "query": {},
+            "body": {
+              "schema": "CreateStorePayload",
+              "required": true,
+              "example": {
+                "sname": "めしタイム食堂",
+                "email": "shop@example.com",
+                "password": "secret",
+                "address": "Osaka",
+                "tel": "06-0000-0000",
+                "open_time": "11:00-22:00",
+                "latitude": 34.7074,
+                "longitude": 135.5034,
+                "genre_id": null
+              }
+            }
+          },
+          "output": {
+            "success": {
+              "status": 201,
+              "schema": "Store",
+              "description": "作成された店舗"
+            },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "updateStore",
+          "method": "PATCH",
+          "summary": "店舗更新",
+          "function": "updateStore",
+          "input": {
+            "path": {
+              "store_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "query": {},
+            "body": {
+              "schema": "UpdateStorePayload",
+              "required": true,
+              "example": {
+                "sname": "めしタイム食堂 本店",
+                "tel": "06-1111-2222",
+                "latitude": 34.71,
+                "longitude": 135.5
+              }
+            }
+          },
+          "output": {
+            "success": { "status": 200, "schema": "Store" },
+            "error": {
+              "schema": "ApiError",
+              "notes": ["body が空の場合 Error: No fields to update"]
+            }
+          }
+        },
+        {
+          "operationId": "deleteStore",
+          "method": "DELETE",
+          "summary": "店舗削除",
+          "function": "deleteStore",
+          "input": {
+            "path": {
+              "store_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": {
+              "status": 204,
+              "schema": null,
+              "value": null
+            },
+            "error": { "schema": "ApiError" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "StorePin",
+      "table": "store_pin",
+      "clientFile": "src/api/StorePinApi.ts",
+      "transport": "supabase",
+      "endpoints": [
+        {
+          "operationId": "getStorePins",
+          "method": "GET",
+          "summary": "ピン一覧",
+          "function": "getStorePins",
+          "input": {
+            "path": {},
+            "query": {
+              "store_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": false,
+                "description": "省略時は全店"
+              }
+            },
+            "body": null
+          },
+          "output": {
+            "success": { "status": 200, "schema": "StorePin[]" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "getActiveStorePins",
+          "method": "GET",
+          "summary": "アクティブピン一覧（地図・検索）",
+          "function": "getActiveStorePins",
+          "input": {
+            "path": {},
+            "query": {
+              "store_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": false
+              }
+            },
+            "body": null
+          },
+          "output": {
+            "success": {
+              "status": 200,
+              "schema": "StorePin[]",
+              "description": "isActive かつ startsAt〜endsAt 内"
+            },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "getStorePin",
+          "method": "GET",
+          "summary": "ピン1件",
+          "function": "getStorePin",
+          "input": {
+            "path": {
+              "pin_id": { "type": "string", "format": "uuid", "required": true }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": { "status": 200, "schema": "StorePin" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "createStorePin",
+          "method": "POST",
+          "summary": "ピン作成",
+          "function": "createStorePin",
+          "input": {
+            "path": {},
+            "query": {},
+            "body": {
+              "schema": "CreateStorePinPayload",
+              "required": true,
+              "example": {
+                "storeId": "6d0e2426-dd61-4fc8-9b81-c2463d70ef4b",
+                "emptySeat": 4,
+                "description": "牛丼セット",
+                "rule": "30%OFF",
+                "time": "14:30",
+                "isActive": true
+              }
+            }
+          },
+          "output": {
+            "success": { "status": 201, "schema": "StorePin" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "updateStorePin",
+          "method": "PATCH",
+          "summary": "ピン更新",
+          "function": "updateStorePin",
+          "input": {
+            "path": {
+              "pin_id": { "type": "string", "format": "uuid", "required": true }
+            },
+            "query": {},
+            "body": {
+              "schema": "UpdateStorePinPayload",
+              "required": true,
+              "example": { "isActive": false }
+            }
+          },
+          "output": {
+            "success": { "status": 200, "schema": "StorePin" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "deleteStorePin",
+          "method": "DELETE",
+          "summary": "ピン削除",
+          "function": "deleteStorePin",
+          "input": {
+            "path": {
+              "pin_id": { "type": "string", "format": "uuid", "required": true }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": { "status": 204, "value": null },
+            "error": { "schema": "ApiError" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reservation",
+      "table": "reservation",
+      "clientFile": "src/api/ReservationApi.ts",
+      "transport": "supabase",
+      "endpoints": [
+        {
+          "operationId": "createReservation",
+          "method": "POST",
+          "summary": "予約作成（status=pending）",
+          "function": "createReservation",
+          "input": {
+            "path": {},
+            "query": {},
+            "body": {
+              "schema": "CreateReservationPayload",
+              "required": true,
+              "example": {
+                "userId": "11111111-1111-1111-1111-111111111111",
+                "pinId": "22222222-2222-2222-2222-222222222222",
+                "partySize": 2
+              }
+            }
+          },
+          "output": {
+            "success": { "status": 201, "schema": "Reservation" },
+            "error": {
+              "schema": "ApiError",
+              "notes": ["userId / pinId 必須"]
+            }
+          }
+        },
+        {
+          "operationId": "getReservation",
+          "method": "GET",
+          "summary": "予約1件",
+          "function": "getReservation",
+          "input": {
+            "path": {
+              "reservation_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": { "status": 200, "schema": "Reservation" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "getReservationsByUser",
+          "method": "GET",
+          "summary": "ユーザーの予約一覧",
+          "function": "getReservationsByUser",
+          "input": {
+            "path": {},
+            "query": {
+              "user_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "body": null
+          },
+          "output": {
+            "success": { "status": 200, "schema": "Reservation[]" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "getReservationsByStore",
+          "method": "GET",
+          "summary": "店舗の予約一覧",
+          "function": "getReservationsByStore",
+          "input": {
+            "path": {},
+            "query": {
+              "store_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "body": null
+          },
+          "output": {
+            "success": { "status": 200, "schema": "Reservation[]" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "updateReservation",
+          "method": "PATCH",
+          "summary": "予約更新",
+          "function": "updateReservation",
+          "input": {
+            "path": {
+              "reservation_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "query": {},
+            "body": {
+              "schema": "UpdateReservationPayload",
+              "required": true
+            }
+          },
+          "output": {
+            "success": { "status": 200, "schema": "Reservation" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "confirmReservation",
+          "method": "POST",
+          "summary": "予約承認",
+          "function": "confirmReservation",
+          "input": {
+            "path": {
+              "reservation_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": { "status": 200, "schema": "Reservation" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "failReservation",
+          "method": "POST",
+          "summary": "予約拒否",
+          "function": "failReservation",
+          "input": {
+            "path": {
+              "reservation_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "query": {},
+            "body": {
+              "type": "object",
+              "properties": {
+                "note": { "type": ["string", "null"], "required": false }
+              }
+            }
+          },
+          "output": {
+            "success": { "status": 200, "schema": "Reservation" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "cancelReservation",
+          "method": "POST",
+          "summary": "予約キャンセル",
+          "function": "cancelReservation",
+          "input": {
+            "path": {
+              "reservation_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "query": {},
+            "body": {
+              "type": "object",
+              "properties": {
+                "note": { "type": ["string", "null"], "required": false }
+              }
+            }
+          },
+          "output": {
+            "success": { "status": 200, "schema": "Reservation" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "deleteReservation",
+          "method": "DELETE",
+          "summary": "予約削除",
+          "function": "deleteReservation",
+          "input": {
+            "path": {
+              "reservation_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": { "status": 204, "value": null },
+            "error": { "schema": "ApiError" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Genre",
+      "table": "genre",
+      "clientFile": "src/api/genreApi.ts",
+      "transport": "supabase",
+      "endpoints": [
+        {
+          "operationId": "getGenre",
+          "method": "GET",
+          "summary": "ジャンル一覧",
+          "function": "getGenre",
+          "input": { "path": {}, "query": {}, "body": null },
+          "output": {
+            "success": { "status": 200, "schema": "Genre[]" },
+            "error": { "schema": "ApiError" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Review",
+      "table": "review",
+      "clientFile": "src/api/reviewApi.ts",
+      "transport": "supabase",
+      "endpoints": [
+        {
+          "operationId": "getReview",
+          "method": "GET",
+          "summary": "店舗レビュー一覧",
+          "function": "getReview",
+          "input": {
+            "path": {},
+            "query": {
+              "store_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "body": null
+          },
+          "output": {
+            "success": { "status": 200, "schema": "Review[]" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "insertReview",
+          "method": "POST",
+          "summary": "レビュー作成",
+          "function": "insertReview",
+          "input": {
+            "path": {},
+            "query": {},
+            "body": {
+              "type": "object",
+              "required": true,
+              "properties": {
+                "store_id": { "type": "string", "required": true },
+                "user_id": { "type": "string", "required": true },
+                "star": { "type": "number", "required": true },
+                "comment": { "type": "string", "required": true }
+              }
+            }
+          },
+          "output": {
+            "success": { "status": 201, "schema": "Review" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "deleteReview",
+          "method": "DELETE",
+          "summary": "レビュー削除",
+          "function": "deleteReview",
+          "input": {
+            "path": {
+              "review_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": { "status": 204, "value": null },
+            "error": { "schema": "ApiError" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Favorite",
+      "table": "fav",
+      "clientFile": "src/api/favoriteApi.ts",
+      "transport": "supabase",
+      "endpoints": [
+        {
+          "operationId": "getAllFavStore",
+          "method": "GET",
+          "summary": "お気に入り一覧",
+          "function": "getAllFavStore",
+          "input": {
+            "path": {},
+            "query": {
+              "user_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "body": null
+          },
+          "output": {
+            "success": { "status": 200, "schema": "FavWithStore[]" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "addFavStore",
+          "method": "POST",
+          "summary": "お気に入り追加",
+          "function": "addFavStore",
+          "input": {
+            "path": {},
+            "query": {},
+            "body": {
+              "type": "object",
+              "required": true,
+              "properties": {
+                "user_id": { "type": "string", "required": true },
+                "store_id": { "type": "string", "required": true }
+              }
+            }
+          },
+          "output": {
+            "success": { "status": 201, "schema": "Favorite" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "deleteFavStore",
+          "method": "DELETE",
+          "summary": "お気に入り削除",
+          "function": "deleteFavStore",
+          "input": {
+            "path": {
+              "user_id": { "type": "string", "required": true },
+              "store_id": { "type": "string", "required": true }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": { "status": 204, "value": null },
+            "error": { "schema": "ApiError" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "History",
+      "table": "history",
+      "clientFile": "src/api/historyApi.ts",
+      "transport": "supabase",
+      "endpoints": [
+        {
+          "operationId": "getAllHistory",
+          "method": "GET",
+          "summary": "利用履歴一覧",
+          "function": "getAllHistory",
+          "input": {
+            "path": {},
+            "query": {
+              "user_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "body": null
+          },
+          "output": {
+            "success": { "status": 200, "schema": "HistoryWithStore[]" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "insertHistory",
+          "method": "POST",
+          "summary": "履歴追加",
+          "function": "insertHistory",
+          "input": {
+            "path": {},
+            "query": {},
+            "body": {
+              "type": "object",
+              "required": true,
+              "properties": {
+                "user_id": { "type": "string", "required": true },
+                "store_id": { "type": "string", "required": true }
+              }
+            }
+          },
+          "output": {
+            "success": { "status": 201, "schema": "History" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "deleteHistory",
+          "method": "DELETE",
+          "summary": "履歴削除",
+          "function": "deleteHistory",
+          "input": {
+            "path": {
+              "history_id": {
+                "type": "string",
+                "format": "uuid",
+                "required": true
+              }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": { "status": 204, "value": null },
+            "error": { "schema": "ApiError" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Menu",
+      "table": "menu",
+      "clientFile": "src/api/menuApi.ts",
+      "transport": "express",
+      "basePath": "/api/menu",
+      "note": "現行のオファー登録は createStorePin を使用。本 API はレガシー。",
+      "endpoints": [
+        {
+          "operationId": "getAllMenu",
+          "method": "GET",
+          "path": "/api/menu/store/{store_id}",
+          "function": "getAllMenu",
+          "input": {
+            "path": {
+              "store_id": { "type": "string", "required": true }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": { "status": 200, "schema": "Menu[]" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "getMenu",
+          "method": "GET",
+          "path": "/api/menu/{menu_id}",
+          "function": "getMenu",
+          "input": {
+            "path": {
+              "menu_id": { "type": "string", "required": true }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": { "status": 200, "schema": "Menu|null" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "insertMenu",
+          "method": "POST",
+          "path": "/api/menu",
+          "function": "insertMenu",
+          "input": {
+            "path": {},
+            "query": {},
+            "body": { "schema": "CreateMenu", "required": true }
+          },
+          "output": {
+            "success": { "status": 201, "schema": "Menu" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "updateMenu",
+          "method": "PUT",
+          "path": "/api/menu/{menu_id}",
+          "function": "updateMenu",
+          "input": {
+            "path": {
+              "menu_id": { "type": "string", "required": true }
+            },
+            "query": {},
+            "body": {
+              "type": "object",
+              "description": "Menu の Partial（id/created_at/store_id 除く）"
+            }
+          },
+          "output": {
+            "success": { "status": 200, "schema": "Menu|null" },
+            "error": { "schema": "ApiError" }
+          }
+        },
+        {
+          "operationId": "deleteMenu",
+          "method": "DELETE",
+          "path": "/api/menu/{menu_id}",
+          "function": "deleteMenu",
+          "input": {
+            "path": {
+              "menu_id": { "type": "string", "required": true }
+            },
+            "query": {},
+            "body": null
+          },
+          "output": {
+            "success": { "status": 200, "schema": "Menu|null" },
+            "error": { "schema": "ApiError" }
+          }
+        }
+      ]
+    }
+  ],
+  "screenMapping": [
+    {
+      "screen": "HomeMapScreen / SearchResultsScreen",
+      "apis": ["getActiveStorePins"]
+    },
+    {
+      "screen": "restaurant-detail",
+      "apis": ["getStorePin", "getReview"]
+    },
+    {
+      "screen": "ConfirmationScreen",
+      "apis": ["getStorePin", "createReservation"]
+    },
+    {
+      "screen": "Register/IndividualRegisterScreen",
+      "apis": ["createUser"]
+    },
+    {
+      "screen": "Register/ShopRegisterScreen",
+      "apis": ["createStore"]
+    },
+    {
+      "screen": "shop/profile",
+      "apis": ["getStoreById", "updateStore"]
+    },
+    {
+      "screen": "shop/pins / MenuRegister",
+      "apis": ["getStorePins", "createStorePin", "updateStorePin"]
+    },
+    {
+      "screen": "shop/reservations",
+      "apis": [
+        "getReservationsByStore",
+        "confirmReservation",
+        "failReservation",
+        "cancelReservation"
+      ]
+    },
+    {
+      "screen": "profile",
+      "apis": ["getUser", "updateUser", "getAllHistory", "getReservationsByUser"]
+    }
+  ],
+  "env": {
+    "EXPO_PUBLIC_DEMO_STORE_ID": "店舗セッション用 UUID",
+    "EXPO_PUBLIC_DEMO_USER_ID": "予約テスト用 user UUID（Auth 未使用時）",
+    "EXPO_PUBLIC_API_URL": "Express Base URL（menu）"
+  }
+}
